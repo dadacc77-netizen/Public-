@@ -3,65 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COGITATOR // 認知核心</title>
+    <title>COGITATOR AI - 決策引擎</title>
     <style>
         :root {
-            --bg-color: #FFF8E7;
-            --accent-color: #F2B705;
-            --accent-hover: #DDA600;
-            --text-primary: #0A0A0A;
-            --text-secondary: #5A5A5C;
-            --text-tertiary: #8E8E93;
-            --surface: #FFFFFF;
-            --border-light: rgba(0, 0, 0, 0.06);
-            --border-focus: rgba(0, 0, 0, 0.15);
-            --danger-bg: rgba(215, 48, 48, 0.04);
-            --danger-text: #D73030;
-            --shadow-subtle: 0 4px 24px rgba(0, 0, 0, 0.02);
-            --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-            --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
+            --bg-color: #0b0e11;
+            --sidebar-bg: #1e2329;
+            --chat-bg: #181a20;
+            --user-bubble: #10a37f;
+            --ai-bubble: #2b2f36;
+            --accent-color: #f0b90b; /* 蜂蜜黃風格 */
+            --text-main: #eaecef;
+            --text-sub: #848e9c;
+            --border-color: #474d57;
+            --card-bg: #1e2329;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
             background-color: var(--bg-color);
-            color: var(--text-primary);
-            line-height: 1.5;
-            min-height: 100vh;
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            padding: 15px 20px;
+            background-color: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: var(--accent-color);
+        }
+
+        /* Chat Flow */
+        #chat-flow {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            scroll-behavior: smooth;
+        }
+
+        .msg-wrapper { display: flex; width: 100%; animation: fadeIn 0.3s ease; }
+        .msg-wrapper.user { justify-content: flex-end; }
+        .msg-wrapper.ai { justify-content: flex-start; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 15px;
+            line-height: 1.6;
+            font-size: 15px;
+            white-space: pre-wrap;
+        }
+
+        .user .bubble {
+            background-color: var(--user-bubble);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .ai .bubble {
+            background-color: var(--ai-bubble);
+            border: 1px solid var(--border-color);
+            border-bottom-left-radius: 2px;
+        }
+
+        /* Decision Card UI */
+        .decision-card {
+            background: var(--card-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .card-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: var(--accent-color); display: flex; align-items: center; gap: 8px; }
+        
+        .recommendation-box {
+            background: rgba(240, 185, 11, 0.1);
+            border-left: 4px solid var(--accent-color);
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        .recommendation-label { font-size: 12px; color: var(--accent-color); text-transform: uppercase; font-weight: bold; }
+        .recommendation-text { font-size: 16px; font-weight: bold; margin-top: 4px; }
+
+        .options-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .option-item { background: #2b2f36; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); }
+        .option-name { font-weight: bold; margin-bottom: 5px; color: #fff; }
+        .pros { color: #0ecb81; font-size: 13px; list-style: "✓ "; padding-left: 15px; }
+        .cons { color: #f6465d; font-size: 13px; list-style: "✕ "; padding-left: 15px; }
+
+        .next-action-box { border-top: 1px solid var(--border-color); padding-top: 10px; font-size: 14px; color: var(--text-sub); }
+        .next-action-box b { color: var(--text-main); }
+
+        /* Quick Actions */
+        #quick-actions {
+            padding: 10px 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            overflow-x: auto;
+            background: var(--bg-color);
+        }
+
+        .action-btn {
+            background: var(--sidebar-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 13px;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
+
+        /* Input Area */
+        #input-area {
+            padding: 20px;
+            background: var(--bg-color);
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 24px;
-            -webkit-font-smoothing: antialiased;
         }
 
-        .app-container {
+        .input-container {
             width: 100%;
-            max-width: 480px;
-            position: relative;
+            max-width: 800px;
+            background: var(--sidebar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            padding: 10px;
+            align-items: center;
         }
 
-        /* 系統頂部列 */
-        .system-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            padding: 0 8px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 8px;
+            font-size: 16px;
+            outline: none;
+            resize: none;
+            max-height: 150px;
         }
 
-        .status-badge {
+        #send-btn {
+            background: var(--accent-color);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 10px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
         }
+
+        /* Loading */
+        .loader { display: none; padding: 10px 20px; gap: 5px; }
+        .dot { width: 6px; height: 6px; background: var(--text-sub); border-radius: 50%; animation: pulse 1s infinite; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<header>COGITATOR ENGINE v5.1</header>
+
+<div id="chat-flow">
+    <div class="msg-wrapper ai">
+        <div class="bubble">系統已就緒。使用者可以點擊下方按鈕或直接輸入當前面臨的決策困境。</div>
+    </div>
+</div>
+
+<div class="loader" id="ai-loader">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+</div>
+
+<div id="quick-actions">
+    <button class="action-btn" onclick="quickInput('我想做決策')">🎯 我想做決策</button>
+    <button class="action-btn" onclick="quickInput('我卡住了')">🚧 我卡住了</button>
+    <button class="action-btn" onclick="quickInput('幫我分析')">📊 幫我分析</button>
+    <button class="action-btn" onclick="quickInput('我有一個想法')">💡 我有一個想法</button>
+</div>
+
+<div id="input-area">
+    <div class="input-container">
+        <textarea id="main-input" rows="1" placeholder="描述您的情況..."></textarea>
+        <button id="send-btn" onclick="processSend()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+    </div>
+</div>
+
+<script>
+    const API_URL = "YOUR_GAS_WEB_APP_URL"; // 👈 請替換為您的 GAS 網址
+
+    const chatFlow = document.getElementById('chat-flow');
+    const mainInput = document.getElementById('main-input');
+    const loader = document.getElementById('ai-loader');
+
+    // 自動高度
+    mainInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+
+    // Enter 送出
+    mainInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            processSend();
+        }
+    });
+
+    function quickInput(text) {
+        mainInput.value = text;
+        mainInput.focus();
+        mainInput.dispatchEvent(new Event('input'));
+    }
+
+    function appendUserMsg(text) {
+        const html = `
+            <div class="msg-wrapper user">
+                <div class="bubble">${text}</div>
+            </div>`;
+        chatFlow.insertAdjacentHTML('beforeend', html);
+        scrollToBottom();
+    }
+
+    function appendTextMsg(text) {
+        const html = `
+            <div class="msg-wrapper ai">
+                <div class="bubble">${text}</div>
+            </div>`;
+        chatFlow.insertAdjacentHTML('beforeend', html);
+        scrollToBottom();
+    }
+
+    function appendDecisionCard(data) {
+        const optionsHtml = data.options.map(opt => `
+            <div class="option-item">
+                <div class="option-name">${opt.name}</div>
+                <ul class="pros">${opt.pros.map(p => `<li>${p}</li>`).join('')}</ul>
+                <ul class="cons">${opt.cons.map(c => `<li>${c}</li>`).join('')}</ul>
+            </div>
+        `).join('');
+
+        const html = `
+            <div class="msg-wrapper ai">
+                <div class="decision-card">
+                    <div class="card-header">⚖️ ${data.title}</div>
+                    <div class="recommendation-box">
+                        <div class="recommendation-label">最佳建議</div>
+                        <div class="recommendation-text">${data.recommendation}</div>
+                    </div>
+                    <div class="options-grid">
+                        ${optionsHtml}
+                    </div>
+                    <div class="next-action-box">
+                        🚀 <b>下一步：</b> ${data.next_action}
+                    </div>
+                </div>
+            </div>`;
+        chatFlow.insertAdjacentHTML('beforeend', html);
+        scrollToBottom();
+    }
+
+    function scrollToBottom() {
+        chatFlow.scrollTop = chatFlow.scrollHeight;
+    }
+
+    async function processSend() {
+        const msg = mainInput.value.trim();
+        if (!msg) return;
+
+        appendUserMsg(msg);
+        mainInput.value = '';
+        mainInput.style.height = 'auto';
+        
+        // 顯示 Loading
+        loader.style.display = 'flex';
+        scrollToBottom();
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    message: msg,
+                    context: [],
+                    timestamp: Date.now()
+                })
+            });
+
+            const resData = await response.json();
+            loader.style.display = 'none';
+
+            if (resData.type === 'decision') {
+                appendDecisionCard(resData);
+            } else {
+                appendTextMsg(resData.reply || "系統未回傳內容。");
+            }
+
+        } catch (error) {
+            loader.style.display = 'none';
+            appendTextMsg("⚠️ 無法連線至決策伺服器，請檢查 API URL 是否正確。");
+            console.error(error);
+        }
+    }
+</script>
+
+</body>
+</html>        }
 
         .status-dot {
             width: 5px;
