@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COGITATOR // PRODUCT_CORE_V7.5</title>
+    <title>COGITATOR // ADAPTIVE_CORE_V8.5</title>
     <style>
         :root { --bg: #0a0a0a; --red: #ff2e2e; --green: #00ff41; --font: "Courier New", Courier, monospace; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -18,29 +18,23 @@
         }
         header { padding: 15px 20px; border-bottom: 2px solid var(--red); background: rgba(20,0,0,0.9); box-shadow: 0 0 15px var(--red); z-index: 10; }
         .header-top { display: flex; justify-content: space-between; align-items: center; }
-        .brand { font-weight: bold; text-shadow: 0 0 8px var(--red); }
-        .status-bar { border: 1px solid var(--green); background: rgba(0,255,65,0.05); padding: 5px 12px; color: var(--green); font-size: 11px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .lvl-tag { background: var(--green); color: #000; padding: 0 5px; font-weight: 900; }
-        .progress-track { background: #222; height: 6px; width: 80px; border: 1px solid var(--red); margin-left: 10px; }
-        #progress-bar { background: var(--red); height: 100%; width: 0%; transition: width 0.8s; box-shadow: 0 0 10px var(--red); }
-
+        .status-bar { border: 1px solid var(--green); background: rgba(0,255,65,0.05); padding: 8px 12px; color: var(--green); font-size: 11px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 15px; }
+        .tag { font-weight: 900; background: var(--green); color: #000; padding: 0 5px; margin-right: 5px; }
+        
         #chat-flow { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
         .msg-wrapper { display: flex; width: 100%; animation: fadeIn 0.3s forwards; }
         .msg-wrapper.user { justify-content: flex-end; }
-        .bubble { max-width: 85%; padding: 15px; border: 1px solid transparent; font-size: 14px; line-height: 1.4; }
-        .ai .bubble { background: rgba(255,46,46,0.1); border-color: var(--red); clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%); }
-        .user .bubble { background: rgba(0,255,65,0.05); border-color: var(--green); color: var(--green); clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 10%); }
+        .bubble { max-width: 85%; padding: 15px; border: 1px solid transparent; font-size: 14px; line-height: 1.5; }
+        .ai .bubble { background: rgba(255,46,46,0.1); border-color: var(--red); clip-path: polygon(0 0, 100% 0, 100% 92%, 95% 100%, 0 100%); }
+        .user .bubble { background: rgba(0,255,65,0.05); border-color: var(--green); color: var(--green); clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 12%); }
 
-        /* Path Card */
-        .path-card { border: 1px solid var(--red); background: rgba(40,0,0,0.9); padding: 12px; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .path-card { border: 1px solid var(--red); background: rgba(40,0,0,0.9); padding: 12px; margin-top: 10px; cursor: pointer; }
         .path-card:hover { background: var(--red); color: #000; }
         
-        /* Quest Card */
-        .quest-card { border: 2px solid var(--red); background: rgba(20,0,0,0.95); padding: 20px; box-shadow: 0 0 15px var(--red); margin-top: 10px; }
-        .complete-btn { margin-top: 15px; border: 1px solid var(--green); color: var(--green); padding: 10px; text-align: center; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .complete-btn:hover { background: var(--green); color: #000; }
+        .quest-card { border: 2px solid var(--red); background: rgba(20,0,0,0.95); padding: 20px; box-shadow: 0 0 20px var(--red); margin-top: 10px; }
+        .btn-done { margin-top: 15px; border: 1px solid var(--green); color: var(--green); padding: 10px; text-align: center; cursor: pointer; font-weight: bold; }
+        .btn-done:hover { background: var(--green); color: #000; }
 
-        /* Achievement Animation */
         .achievement { background: var(--green); color: #000; padding: 12px; margin: 10px 0; text-align: center; font-weight: 900; animation: fadeUp 0.6s ease-out; box-shadow: 0 0 20px var(--green); }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -58,16 +52,19 @@
 
     <header>
         <div class="header-top">
-            <div class="brand">COGITATOR // CORE_V7.5</div>
-            <div style="font-size: 10px; cursor: pointer; color: #666;" onclick="purge()">[PURGE_MEMORY]</div>
+            <div style="font-weight:bold; text-shadow:0 0 5px var(--red);">COGITATOR // CORE_V8.5</div>
+            <div style="font-size: 10px; cursor: pointer; color: #555;" onclick="purge()">[PURGE_MEMORY]</div>
         </div>
         <div class="status-bar">
-            <div><span class="lvl-tag">LVL.<span id="lvl-txt">0</span></span> OBJ: <span id="goal-txt" style="color:#fff">AWAITING...</span></div>
-            <div style="display:flex; align-items:center;">SYNC: <div class="progress-track"><div id="progress-bar"></div></div></div>
+            <div><span class="tag">LVL</span> <span id="lvl-txt">1</span></div>
+            <div><span class="tag">EXE</span> <span id="exe-txt">0</span></div>
+            <div><span class="tag">OBJ</span> <span id="goal-txt" style="color:#fff">WAITING...</span></div>
         </div>
     </header>
 
-    <div id="chat-flow"><div class="msg-wrapper ai"><div class="bubble">CORE READY. 請輸入您的核心目標。</div></div></div>
+    <div id="chat-flow"><div class="msg-wrapper ai"><div class="bubble">系統監控中。請輸入您的核心目標變數。</div></div></div>
+
+    <div id="typing" style="display:none; padding-left:20px;" class="typing">>> ANALYZING BEHAVIOR...</div>
 
     <div class="controls">
         <div class="input-row">
@@ -77,15 +74,13 @@
     </div>
 
     <script>
-        // 🎯 唯一 ENDPOINT
         const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec";
-        
         let loading = false, context = [];
         let userId = localStorage.getItem("cogitator_id") || ("CORE_" + Date.now());
         localStorage.setItem("cogitator_id", userId);
 
         const chat = document.getElementById('chat-flow'), input = document.getElementById('ui-input'), btn = document.getElementById('send-btn');
-        const goalTxt = document.getElementById('goal-txt'), lvlTxt = document.getElementById('lvl-txt'), progressUI = document.getElementById('progress-bar');
+        const goalTxt = document.getElementById('goal-txt'), lvlTxt = document.getElementById('lvl-txt'), exeTxt = document.getElementById('exe-txt'), typingUI = document.getElementById('typing');
 
         function purge() { localStorage.removeItem("cogitator_id"); location.reload(); }
         function scroll() { chat.scrollTop = chat.scrollHeight; }
@@ -112,10 +107,9 @@
             } else if (type === "task") {
                 bubble.innerHTML = `
                     <div class="quest-card">
-                        <div style="font-weight:bold; border-bottom:1px solid var(--red); padding-bottom:8px; margin-bottom:12px; color:var(--red);">+++ ACTIVE QUEST +++</div>
-                        <div style="color:var(--green); font-size:11px;">TARGET: ${content.goal}</div>
-                        <div style="color:#fff; padding:15px 0; font-size:15px; border-left:3px solid var(--red); padding-left:15px; margin:10px 0;">${content.task}</div>
-                        <div class="complete-btn" onclick="taskDone()">✔ 任務完成</div>
+                        <div style="font-weight:bold; border-bottom:1px solid var(--red); padding-bottom:5px; margin-bottom:12px;">+++ ACTIVE TASK +++</div>
+                        <div style="color:#fff; padding:15px 0; font-size:16px; border-left:4px solid var(--red); padding-left:15px;">${content.task}</div>
+                        <div class="btn-done" onclick="taskDone()">✔ 執行完畢</div>
                     </div>
                 `;
             }
@@ -123,230 +117,48 @@
             wrap.appendChild(bubble); chat.appendChild(wrap); scroll();
         }
 
-        // 🧠 9. 選路邏輯修正
         async function choosePath(id) {
             const msg = "我選擇 " + id;
-            context.push({ role: "user", content: msg });
             input.value = msg;
             send();
         }
 
         async function taskDone() {
-            showAchievement("任務完成：進度同步中");
-            input.value = "我做好了，請推下一步";
+            showAchievement("ACTION SYNCED // LEVEL UP");
+            input.value = "我完成了";
             send();
         }
 
         async function send() {
             if (loading) return;
-            const val = input.value.trim();
-            if (!val) return;
+            const val = input.value.trim(); if (!val) return;
 
             loading = true; btn.disabled = true;
-            append("user", val);
-            context.push({ role: "user", content: val });
-            input.value = "";
-
-            const typing = document.createElement("div"); typing.className = "typing"; typing.innerText = ">> CORE PROCESSING...";
-            chat.appendChild(typing); scroll();
+            append("user", val); context.push({ role: "user", content: val });
+            input.value = ""; typingUI.style.display = "block"; scroll();
 
             try {
-                // ✅ 穩定版 Fetch
                 const res = await fetch(ENDPOINT, { method: "POST", body: JSON.stringify({ message: val, context: context, userId: userId }) });
                 const data = await res.json();
-                chat.removeChild(typing);
+                typingUI.style.display = "none";
 
-                // 更新 UI
+                // 更新頂部 Profile
                 if (data.identity && data.identity.mainGoal) goalTxt.innerText = data.identity.mainGoal;
-                if (data.progress) {
-                    progressUI.style.width = data.progress.percent + "%";
-                    lvlTxt.innerText = Math.floor(data.progress.percent / 20);
+                if (data.profile) {
+                    lvlTxt.innerText = data.profile.level;
+                    exeTxt.innerText = data.profile.execution;
                 }
 
-                // 渲染回應
                 if (data.reply) append("ai", data.reply);
                 if (data.type === "paths") append("ai", data, "paths");
                 if (data.type === "task") append("ai", data, "task");
 
                 context.push({ role: "ai", content: data.reply || data.task || "ACK" });
             } catch (err) {
-                if (chat.contains(typing)) chat.removeChild(typing);
-                append("ai", "連線失敗。");
+                typingUI.style.display = "none";
+                append("ai", "連線斷開。請檢查終端。");
             } finally {
                 loading = false; btn.disabled = false; input.focus();
-            }
-        }
-
-        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') send(); });
-    </script>
-</body>
-</html>        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .bubble { max-width: 85%; padding: 15px; border: 1px solid transparent; font-size: 14px; line-height: 1.4; }
-        .ai .bubble { background: rgba(255,46,46,0.1); border-color: var(--red); clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%); }
-        .user .bubble { background: rgba(0,255,65,0.05); border-color: var(--green); color: var(--green); clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 10%); }
-
-        /* 路徑卡片樣式 */
-        .path-container { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; width: 100%; }
-        .path-card { 
-            border: 1px solid var(--red); background: rgba(40,0,0,0.9); padding: 12px; 
-            cursor: pointer; transition: 0.2s;
-        }
-        .path-card:hover { background: var(--red); color: #000; box-shadow: 0 0 10px var(--red); }
-        .path-title { font-weight: bold; font-size: 14px; display: block; margin-bottom: 4px; }
-        .path-desc { font-size: 12px; color: #fff; }
-
-        .controls { padding: 20px; background: #000; border-top: 2px solid var(--red); }
-        .input-row { display: flex; gap: 10px; }
-        input { flex: 1; background: #111; border: 1px solid #333; padding: 12px; color: var(--green); font-family: var(--font); outline: none; }
-        button { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 0 20px; font-weight: bold; cursor: pointer; font-family: var(--font); }
-        button:hover:not(:disabled) { background: var(--red); color: #000; }
-        button:disabled { opacity: 0.3; }
-
-        .typing-tag { font-size: 11px; color: var(--green); animation: flicker 0.5s infinite; padding: 10px 0; }
-    </style>
-</head>
-<body>
-
-    <header>
-        <div class="header-top">
-            <div class="brand">COGITATOR // STABLE_V6.0</div>
-            <div style="font-size: 10px; cursor: pointer;" onclick="purge()">[PURGE_MEMORY]</div>
-        </div>
-        <div class="status-bar">
-            <div>OBJ: <span id="goal-txt" style="color:#fff">AWAITING...</span></div>
-            <div id="status-tag">CORE_READY</div>
-        </div>
-    </header>
-
-    <div id="chat-flow">
-        <div class="msg-wrapper ai"><div class="bubble">系統已就緒。請陳述您的核心目標。</div></div>
-    </div>
-
-    <div class="controls">
-        <div class="input-row">
-            <input type="text" id="ui-input" placeholder="ENTER PARAMETERS..." autocomplete="off">
-            <button id="send-btn" onclick="send()">EXECUTE</button>
-        </div>
-    </div>
-
-    <script>
-        // 🎯 唯一宣告點：請將網址替換為你的 GAS URL
-        const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec";
-        
-        let loading = false;
-        let context = [];
-        let userId = localStorage.getItem("cogitator_id") || ("CORE_" + Date.now());
-        localStorage.setItem("cogitator_id", userId);
-
-        const chat = document.getElementById('chat-flow');
-        const input = document.getElementById('ui-input');
-        const btn = document.getElementById('send-btn');
-        const goalTxt = document.getElementById('goal-txt');
-
-        function purge() { localStorage.removeItem("cogitator_id"); location.reload(); }
-        function scroll() { chat.scrollTop = chat.scrollHeight; }
-
-        function append(role, content, type = "text") {
-            const wrap = document.createElement('div');
-            wrap.className = `msg-wrapper ${role}`;
-            const bubble = document.createElement('div');
-            bubble.className = "bubble";
-
-            if (type === "text") {
-                bubble.textContent = content;
-            } else if (type === "paths") {
-                let html = `<div style="margin-bottom:8px;">🎯 目標：${content.goal}</div>`;
-                html += `<div style="color:var(--green); margin-bottom:10px;">${content.lead || '解析完成，建議路徑如下：'}</div>`;
-                html += `<div class="path-container">`;
-                content.paths.forEach(p => {
-                    html += `<div class="path-card" onclick="choosePath('${p.id || p.title}')">
-                                <span class="path-title">▪ ${p.title}</span>
-                                <span class="path-desc">${p.desc}</span>
-                             </div>`;
-                });
-                html += `</div><div style="margin-top:10px; font-weight:bold;">${content.prompt || '請選擇一條路徑：'}</div>`;
-                bubble.innerHTML = html;
-            }
-
-            wrap.appendChild(bubble);
-            chat.appendChild(wrap);
-            scroll();
-        }
-
-        async function choosePath(id) {
-            input.value = "我選擇 " + id;
-            send();
-        }
-
-        async function send() {
-            if (loading) return;
-            const val = input.value.trim();
-            if (!val) return;
-
-            loading = true;
-            btn.disabled = true;
-
-            // User UI
-            append("user", val);
-            context.push({ role: "user", content: val });
-            input.value = "";
-
-            // Typing Animation
-            const typing = document.createElement("div");
-            typing.className = "typing-tag";
-            typing.innerText = ">> CORE PROCESSING...";
-            chat.appendChild(typing);
-            scroll();
-
-            try {
-                // ✅ 穩定版 Fetch (無 Headers)
-                const res = await fetch(ENDPOINT, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        message: val,
-                        context: context,
-                        userId: userId
-                    })
-                });
-
-                // ✅ 強化解析
-                const text = await res.text();
-                chat.removeChild(typing);
-
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch (e) {
-                    append("ai", "系統解析失敗，請確認 GAS 部署權限。");
-                    loading = false;
-                    return;
-                }
-
-                // UI 更新
-                if (data.identity && data.identity.mainGoal) {
-                    goalTxt.innerText = data.identity.mainGoal;
-                }
-
-                // 核心邏輯判斷
-                if (data.type === "paths") {
-                    append("ai", data, "paths");
-                } else if (data.reply) {
-                    append("ai", data.reply);
-                } else {
-                    // Fallback
-                    append("ai", "核心已接收，請繼續說明細節或下一步。");
-                }
-
-                context.push({ role: "ai", content: data.reply || "ACK" });
-
-            } catch (err) {
-                if (chat.contains(typing)) chat.removeChild(typing);
-                append("ai", "連線失敗，請檢查網路或 GAS URL。");
-            } finally {
-                loading = false;
-                btn.disabled = false;
-                input.focus();
             }
         }
 
