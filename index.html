@@ -3,20 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高階決策防護系統</title>
+    <title>COGITATOR // 認知決策引擎</title>
     <style>
         :root {
-            --brand-bg: #FFF8E7; 
-            --brand-accent: #F2B705; 
-            --brand-accent-hover: #E5A800;
-            --text-main: #111111;
-            --text-secondary: #4A4A4A;
-            --text-muted: #888888;
-            --border-light: #E8E8E8;
-            --white: #FFFFFF;
-            --danger: #D93025;
-            --success: #0F9D58;
-            --focus-ring: rgba(242, 183, 5, 0.4);
+            --bg-color: #FFF8E7; /* Required Brand Cream White */
+            --accent-color: #F2B705; /* Required Brand Honey Yellow */
+            --accent-hover: #DDA600;
+            --text-primary: #0A0A0A;
+            --text-secondary: #5A5A5C;
+            --text-tertiary: #8E8E93;
+            --surface: #FFFFFF;
+            --border-light: rgba(0, 0, 0, 0.06);
+            --border-focus: rgba(0, 0, 0, 0.15);
+            --danger-bg: rgba(215, 48, 48, 0.04);
+            --danger-text: #D73030;
+            --shadow-subtle: 0 4px 24px rgba(0, 0, 0, 0.02);
+            --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+            --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         * {
@@ -26,504 +29,538 @@
         }
 
         body {
-            font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--brand-bg);
-            color: var(--text-main);
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 20px;
+            padding: 24px;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        .container {
+        .app-container {
             width: 100%;
-            max-width: 500px;
-            background: var(--white);
-            border-radius: 12px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0,0,0,0.02);
+            max-width: 480px;
             position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.03);
         }
 
-        /* 信任與安全宣告列 */
-        .system-bar {
-            background-color: #FAFAFA;
-            border-bottom: 1px solid var(--border-light);
-            padding: 10px 24px;
+        /* 頂部系統列 */
+        .system-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 0 8px;
             font-size: 11px;
             font-weight: 600;
-            color: var(--text-muted);
-            letter-spacing: 0.05em;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
         }
 
-        .status-indicator {
+        .status-badge {
             display: flex;
             align-items: center;
             gap: 6px;
-            color: var(--success);
         }
 
         .status-dot {
-            width: 6px;
-            height: 6px;
-            background-color: var(--success);
+            width: 5px;
+            height: 5px;
             border-radius: 50%;
-            box-shadow: 0 0 0 2px rgba(15, 157, 88, 0.2);
-            animation: pulse-dot 2s infinite;
+            background-color: var(--text-primary);
+            opacity: 0.3;
         }
 
-        @keyframes pulse-dot {
-            0% { box-shadow: 0 0 0 0 rgba(15, 157, 88, 0.4); }
-            70% { box-shadow: 0 0 0 4px rgba(15, 157, 88, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(15, 157, 88, 0); }
-        }
-
-        .content-wrapper {
-            padding: 40px;
+        /* 主卡片 */
+        .card {
+            background: var(--surface);
+            border-radius: 20px;
+            box-shadow: var(--shadow-float);
+            border: 1px solid var(--border-light);
+            padding: 48px 40px;
+            position: relative;
+            overflow: hidden;
         }
 
         /* 狀態切換 */
-        .state-view {
+        .state-layer {
             display: none;
             opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(8px) scale(0.99);
+            transition: opacity 0.6s var(--ease-apple), transform 0.6s var(--ease-apple);
         }
-        
-        .state-view.active {
+
+        .state-layer.is-active {
             display: block;
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
         }
 
-        /* 標題與心理層 */
-        .header {
-            margin-bottom: 32px;
-        }
-        .header h1 {
-            font-size: 24px;
+        /* Typography */
+        h1 {
+            font-size: 28px;
             font-weight: 700;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
             margin-bottom: 12px;
-            color: var(--text-main);
+            line-height: 1.2;
         }
-        .header p {
+
+        .subtitle {
             font-size: 15px;
             color: var(--text-secondary);
-            line-height: 1.5;
-        }
-        .risk-warning {
-            display: inline-block;
-            margin-top: 12px;
-            padding: 8px 12px;
-            background-color: rgba(217, 48, 37, 0.04);
-            color: var(--danger);
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 6px;
-            border: 1px solid rgba(217, 48, 37, 0.1);
+            margin-bottom: 32px;
+            font-weight: 400;
         }
 
-        /* 表單設計 */
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
+        .tension-banner {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 32px;
+            border: 1px solid rgba(215, 48, 48, 0.08);
+            letter-spacing: 0.01em;
         }
-        
-        .field-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+
+        /* 表單元素 */
+        .form-group {
+            margin-bottom: 24px;
         }
 
         label {
-            font-size: 14px;
+            display: block;
+            font-size: 13px;
             font-weight: 600;
-            color: var(--text-main);
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
         }
 
-        .label-desc {
+        .help-text {
+            display: block;
             font-size: 13px;
-            color: var(--text-muted);
-            font-weight: 400;
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
             margin-top: -4px;
         }
 
-        textarea, input[type="email"] {
+        input, textarea {
             width: 100%;
-            padding: 14px 16px;
-            font-size: 15px;
-            line-height: 1.5;
-            font-family: inherit;
+            background: transparent;
             border: 1px solid var(--border-light);
-            border-radius: 8px;
-            outline: none;
-            background-color: #FAFAFA;
-            transition: all 0.2s ease;
+            border-radius: 10px;
+            padding: 16px;
+            font-size: 15px;
+            color: var(--text-primary);
+            font-family: inherit;
+            transition: all 0.3s var(--ease-apple);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.01) inset;
         }
-        
+
         textarea {
-            min-height: 110px;
+            min-height: 120px;
             resize: vertical;
+            line-height: 1.5;
         }
 
-        textarea:focus, input[type="email"]:focus {
-            border-color: var(--brand-accent);
-            background-color: var(--white);
-            box-shadow: 0 0 0 3px var(--focus-ring);
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 4px rgba(0,0,0,0.02);
+            background: var(--surface);
         }
 
-        textarea::placeholder, input[type="email"]::placeholder {
-            color: #B0B0B0;
+        input::placeholder, textarea::placeholder {
+            color: #C0C0C0;
         }
 
+        /* 按鈕 (Premium Micro-interactions) */
         button {
             width: 100%;
-            background-color: var(--brand-accent);
-            color: var(--text-main);
+            background: var(--accent-color);
+            color: var(--text-primary);
             border: none;
-            padding: 16px;
-            font-size: 16px;
-            font-weight: 700;
-            border-radius: 8px;
+            padding: 18px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            margin-top: 8px;
-            box-shadow: 0 4px 14px rgba(242, 183, 5, 0.25);
+            transition: all 0.4s var(--ease-apple);
+            margin-top: 12px;
+            box-shadow: 0 2px 10px rgba(242, 183, 5, 0.15);
+            letter-spacing: -0.01em;
         }
 
         button:hover {
-            background-color: var(--brand-accent-hover);
+            background: var(--accent-hover);
             transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(242, 183, 5, 0.3);
+            box-shadow: 0 6px 20px rgba(242, 183, 5, 0.25);
         }
 
         button:active {
             transform: translateY(1px) scale(0.98);
-            box-shadow: 0 2px 8px rgba(242, 183, 5, 0.2);
+            box-shadow: 0 1px 4px rgba(242, 183, 5, 0.1);
         }
 
         /* 信任錨點 */
-        .trust-signal {
+        .trust-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-tertiary);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            margin-top: 24px;
-            font-size: 12px;
-            color: var(--text-muted);
+            gap: 6px;
             font-weight: 500;
         }
-        
-        .trust-signal svg {
+
+        .trust-footer svg {
             width: 12px;
             height: 12px;
             fill: currentColor;
+            opacity: 0.7;
         }
 
-        /* Loading 狀態 (User-Centric Processing) */
-        .loading-container {
-            padding: 20px 0;
-        }
-
-        .loading-header {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 28px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(17, 17, 17, 0.1);
-            border-top-color: var(--text-main);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .process-steps {
+        /* Loading Experience (Organic & Intelligent) */
+        .loading-view {
+            text-align: center;
+            padding: 40px 0;
             display: flex;
             flex-direction: column;
-            gap: 18px;
-        }
-
-        .step {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 15px;
-            color: var(--text-muted);
-            opacity: 0.4;
-            transition: opacity 0.3s, color 0.3s;
-        }
-
-        .step.active {
-            opacity: 1;
-            color: var(--text-main);
-            font-weight: 600;
-        }
-
-        .step.completed {
-            opacity: 1;
-            color: var(--text-secondary);
-        }
-
-        .step-icon {
-            width: 18px;
-            height: 18px;
-            display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 300px;
         }
 
-        .step.completed .step-icon::after {
-            content: "✓";
-            color: var(--success);
-            font-weight: bold;
+        .orb-container {
+            position: relative;
+            width: 64px;
+            height: 64px;
+            margin-bottom: 40px;
         }
 
-        /* 成功狀態 (Process Started) */
-        .success-icon {
-            width: 48px;
-            height: 48px;
-            background-color: var(--brand-bg);
-            border: 2px solid var(--brand-accent);
+        .orb {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-color) 0%, rgba(242,183,5,0) 100%);
+            opacity: 0.15;
+            animation: breathe 3s ease-in-out infinite alternate;
+        }
+
+        .orb-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--text-primary);
+        }
+
+        @keyframes breathe {
+            0% { transform: scale(0.8); opacity: 0.1; }
+            100% { transform: scale(1.5); opacity: 0.25; }
+        }
+
+        .loading-text-container {
+            height: 24px;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .loading-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.5s var(--ease-apple);
+            letter-spacing: 0.02em;
+        }
+
+        .loading-text.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .loading-text.is-exiting {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        /* Success State (Anticipation & Process Started) */
+        .success-view {
+            padding: 20px 0 10px;
+        }
+
+        .success-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--bg-color);
+            border: 1px solid var(--border-light);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
         }
 
-        .success-icon svg {
-            width: 24px;
-            height: 24px;
-            fill: var(--text-main);
-        }
-
-        .success-title {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            color: var(--text-main);
+        .success-mark svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--text-primary);
         }
 
         .success-body {
             font-size: 15px;
-            line-height: 1.6;
             color: var(--text-secondary);
-            margin-bottom: 24px;
+            margin-bottom: 40px;
         }
 
         .success-body strong {
-            color: var(--text-main);
+            color: var(--text-primary);
             font-weight: 600;
         }
 
-        .action-box {
-            background-color: #FAFAFA;
+        .receipt-box {
+            background: #FAFAFA;
             border: 1px solid var(--border-light);
-            border-radius: 8px;
-            padding: 20px;
-            font-size: 14px;
-            color: var(--text-main);
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            border-radius: 12px;
+            padding: 24px;
         }
 
-        .action-box-title {
-            font-size: 13px;
+        .receipt-title {
+            font-size: 11px;
+            text-transform: uppercase;
             font-weight: 700;
-            color: var(--text-main);
-            padding-bottom: 8px;
+            color: var(--text-tertiary);
+            letter-spacing: 0.06em;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
             border-bottom: 1px solid var(--border-light);
         }
 
+        .receipt-item {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .receipt-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .receipt-icon {
+            color: var(--text-tertiary);
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
         @media (max-width: 480px) {
-            .content-wrapper { padding: 32px 24px; }
-            .header h1 { font-size: 22px; }
+            .card { padding: 32px 24px; }
+            h1 { font-size: 24px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="system-bar">
-            <span>DECISION SAFEGUARD // 防護機制</span>
-            <div class="status-indicator">
+    <div class="app-container">
+        <div class="system-header">
+            <span>COGITATOR // 認知核心</span>
+            <div class="status-badge">
                 <div class="status-dot"></div>
-                <span>你的資料已加密連線</span>
+                <span>Awaiting Parameters</span>
             </div>
         </div>
 
-        <div class="content-wrapper">
-            <div id="state-form" class="state-view active">
-                <div class="header">
-                    <h1>你的下一個決定，極度關鍵。</h1>
-                    <p>在資源有限的狀況下，走錯一步的代價極高。具體描述你現在的卡點，我們幫你找出最穩妥的破局路徑。</p>
-                    <div class="risk-warning">⚠️ 提示：多數人在這個階段做錯決定，是因為看不見隱形的致命變數。</div>
+        <div class="card">
+            
+            <div id="state-form" class="state-layer is-active">
+                <h1>決策臨界點。</h1>
+                <p class="subtitle">你在這裡輸入的變數，將決定下一階段的資源消耗與系統走向。</p>
+                
+                <div class="tension-banner">
+                    多數的系統性失敗，皆源於此階段未察覺的變數盲點。
                 </div>
 
-                <div class="input-group">
-                    <div class="field-wrapper">
-                        <label for="problem">你目前面臨的最關鍵難題是什麼？</label>
-                        <div class="label-desc">請誠實描述你的現況、手邊資源與最大的顧慮。</div>
-                        <textarea id="problem" placeholder="例如：目前單人作業且資金有限，產品方向應該優先做高客單服務還是輕量化軟體？"></textarea>
-                    </div>
-                    
-                    <div class="field-wrapper">
-                        <label for="email">報告接收信箱</label>
-                        <div class="label-desc">我們將把避險決策報告寄到這個信箱。</div>
-                        <input type="email" id="email" placeholder="name@yourcompany.com">
-                    </div>
-                    
-                    <button id="submitBtn" onclick="processEngine()">幫我找出最安全的做法</button>
-                </div>
-
-                <div class="trust-signal">
-                    <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
-                    我們唯一的目標，是確保你不會走錯方向。
-                </div>
-            </div>
-
-            <div id="state-loading" class="state-view">
-                <div class="loading-container">
-                    <div class="loading-header">
-                        <div class="spinner"></div>
-                        <span>正在為你解析決策變數...</span>
-                    </div>
-                    
-                    <div class="process-steps">
-                        <div class="step" id="step-1">
-                            <div class="step-icon"></div>
-                            <span>正在解構你的現況與資源限制</span>
-                        </div>
-                        <div class="step" id="step-2">
-                            <div class="step-icon"></div>
-                            <span>比對過往類似情境的致命錯誤</span>
-                        </div>
-                        <div class="step" id="step-3">
-                            <div class="step-icon"></div>
-                            <span>為你模擬不同決策的潛在代價</span>
-                        </div>
-                        <div class="step" id="step-4">
-                            <div class="step-icon"></div>
-                            <span>正在收斂唯一最安全的行動方案</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="state-success" class="state-view">
-                <div class="success-icon">
-                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                </div>
-                <h2 class="success-title">你的決策分析已經展開。</h2>
-                <div class="success-body">
-                    我們已經鎖定你目前的處境。為了避免你走錯方向，系統正在針對你的變數進行 <strong>深度壓力測試</strong>。<br><br>
-                    這不是一份普通的制式報告，而是針對你當前處境的防雷指南。
+                <div class="form-group">
+                    <label for="problem">描述當前系統的瓶頸與限制</label>
+                    <span class="help-text">請去除情緒字眼，客觀陳述資源狀態與最大顧慮。</span>
+                    <textarea id="problem" placeholder="例如：現有資金僅能維持四個月，應優先投入高客單價的服務開發，還是輕量化的 SaaS 訂閱測試？" spellcheck="false"></textarea>
                 </div>
                 
-                <div class="action-box">
-                    <div class="action-box-title">你的下一步：</div>
-                    <div>1. 我們將為你排除所有高風險盲區，並找出破口。</div>
-                    <div>2. 專屬於你的 <strong>決策藍圖與執行計畫</strong>，將於 24 小時內嚴格遞送。</div>
-                    <div style="color: var(--danger); font-weight: 600; margin-top: 8px;">⚠️ 請密切留意信箱，這份報告將決定你接下來該往哪走。</div>
+                <div class="form-group">
+                    <label for="email">高階防護報告接收端點</label>
+                    <input type="email" id="email" placeholder="name@domain.com" spellcheck="false" autocomplete="email">
+                </div>
+                
+                <button id="submitBtn" onclick="initiateSequence()">鎖定變數並啟動推演</button>
+
+                <div class="trust-footer">
+                    <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+                    端對端加密。參數將於模型收斂後永久銷毀。
                 </div>
             </div>
+
+            <div id="state-loading" class="state-layer">
+                <div class="loading-view">
+                    <div class="orb-container">
+                        <div class="orb"></div>
+                        <div class="orb-core"></div>
+                    </div>
+                    <div class="loading-text-container" id="text-container">
+                        <div class="loading-text is-visible">隔離環境建置中...</div>
+                        <div class="loading-text">正在解構邊界條件與資源限制...</div>
+                        <div class="loading-text">比對歷史失敗節點...</div>
+                        <div class="loading-text">平行模擬未來 3 條演化路徑...</div>
+                        <div class="loading-text">收斂唯一最安全行動基底...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="state-success" class="state-layer">
+                <div class="success-view">
+                    <div class="success-mark">
+                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                    <h1>推演序列已啟動。</h1>
+                    <p class="success-body">
+                        系統已成功捕獲並鎖定你的變數矩陣。這並非即時的制式回覆，引擎正在後台進行 <strong>多維度壓力測試</strong> 以排除潛在的致命風險。
+                    </p>
+
+                    <div class="receipt-box">
+                        <div class="receipt-title">Next Steps // 執行確認</div>
+                        <div class="receipt-item">
+                            <span class="receipt-icon">01</span>
+                            <span>系統將為你收斂出唯一的最穩妥路徑與行動藍圖。</span>
+                        </div>
+                        <div class="receipt-item">
+                            <span class="receipt-icon">02</span>
+                            <span>完整決策報告將於 <strong>24 小時內</strong> 透過安全通道遞送至信箱。</span>
+                        </div>
+                        <div class="receipt-item" style="color: var(--danger-text); font-weight: 500; margin-top: 16px;">
+                            <span class="receipt-icon" style="color: inherit;">⚠</span>
+                            <span>在收到報告前，請暫緩任何重大資源調動。</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 
     <script>
-        const elProblem = document.getElementById('problem');
-        const elEmail = document.getElementById('email');
+        const DOM = {
+            form: document.getElementById('state-form'),
+            loading: document.getElementById('state-loading'),
+            success: document.getElementById('state-success'),
+            problem: document.getElementById('problem'),
+            email: document.getElementById('email'),
+            textContainer: document.getElementById('text-container'),
+            statusDot: document.querySelector('.status-dot'),
+            statusText: document.querySelector('.status-badge span:last-child')
+        };
 
-        window.onload = () => elProblem.focus();
-
-        elProblem.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') processEngine();
+        // UX: Focus & Keyboard Shortcuts
+        window.onload = () => DOM.problem.focus();
+        
+        DOM.problem.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') initiateSequence();
         });
-        elEmail.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') processEngine();
+        DOM.email.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') initiateSequence();
         });
 
-        function transitionState(hideId, showId) {
-            const hideEl = document.getElementById(hideId);
-            const showEl = document.getElementById(showId);
-            
-            hideEl.style.opacity = '0';
-            hideEl.style.transform = 'translateY(-10px)';
+        // State Machine Transition
+        function transition(hideEl, showEl) {
+            hideEl.classList.remove('is-active');
             
             setTimeout(() => {
-                hideEl.classList.remove('active');
-                showEl.classList.add('active');
+                hideEl.style.display = 'none';
+                showEl.style.display = 'block';
+                
+                // Force layout recalculation
                 void showEl.offsetWidth; 
-                showEl.style.opacity = '1';
-                showEl.style.transform = 'translateY(0)';
-            }, 400);
+                
+                showEl.classList.add('is-active');
+            }, 600); // Matches CSS transition duration
         }
 
-        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-        async function processEngine() {
-            const problemVal = elProblem.value.trim();
-            const emailVal = elEmail.value.trim();
+        async function initiateSequence() {
+            const pVal = DOM.problem.value.trim();
+            const eVal = DOM.email.value.trim();
 
-            if (!problemVal || !emailVal || !emailVal.includes('@')) {
-                alert("為了給出正確的決策判斷，請具體描述你的難題，並提供接收報告的信箱。");
+            if (!pVal || !eVal || !eVal.includes('@')) {
+                // Shake effect for error could be added, keeping minimal for now
+                alert("參數不足：請提供具體的瓶頸描述與有效的接收端點。");
                 return;
             }
 
-            transitionState('state-form', 'state-loading');
-            await sleep(600); 
+            // Update System Bar
+            DOM.statusDot.style.backgroundColor = 'var(--accent-color)';
+            DOM.statusDot.style.opacity = '1';
+            DOM.statusDot.style.boxShadow = '0 0 8px rgba(242, 183, 5, 0.6)';
+            DOM.statusText.innerText = 'Processing Payload';
 
-            // 模擬真實的非線性運算延遲，增加心理張力
-            const setStepActive = (num) => {
-                document.getElementById(`step-${num}`).classList.add('active');
-            };
-            const setStepComplete = (num) => {
-                const el = document.getElementById(`step-${num}`);
-                el.classList.remove('active');
-                el.classList.add('completed');
-                el.querySelector('.step-icon').innerHTML = ''; 
-            };
+            // Transition to Loading
+            transition(DOM.form, DOM.loading);
+            
+            // Handle Loading Text Animation
+            const texts = Array.from(DOM.textContainer.children);
+            let currentIndex = 0;
 
-            // Step 1: 解析現況
-            setStepActive(1);
-            await sleep(1000 + Math.random() * 500); 
-            setStepComplete(1);
+            const textInterval = setInterval(() => {
+                if (currentIndex >= texts.length - 1) {
+                    clearInterval(textInterval);
+                    return;
+                }
+                
+                const current = texts[currentIndex];
+                const next = texts[currentIndex + 1];
 
-            // Step 2: 比對風險
-            setStepActive(2);
-            await sleep(1500 + Math.random() * 800); 
-            setStepComplete(2);
+                current.classList.remove('is-visible');
+                current.classList.add('is-exiting');
 
-            // Step 3: 模擬代價 (故意放慢，增加恐懼與價值感)
-            setStepActive(3);
-            await sleep(2200 + Math.random() * 1200); 
-            setStepComplete(3);
+                next.classList.add('is-visible');
+                
+                currentIndex++;
+            }, 2500); // Organic, slightly unpredictable pacing
 
-            // Step 4: 收斂方案
-            setStepActive(4);
-            await sleep(1200 + Math.random() * 400); 
-            setStepComplete(4);
+            // Simulate deep computation time (Total ~12.5s for realism, adjusted to 8s for UX)
+            await sleep(8500);
+            
+            clearInterval(textInterval);
+            
+            // Update System Bar for Success
+            DOM.statusDot.style.backgroundColor = '#0F9D58';
+            DOM.statusDot.style.boxShadow = 'none';
+            DOM.statusText.innerText = 'Sequence Locked';
 
-            await sleep(500);
-            transitionState('state-loading', 'state-success');
+            transition(DOM.loading, DOM.success);
         }
     </script>
 </body>
