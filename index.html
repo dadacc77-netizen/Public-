@@ -3,30 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COGITATOR // DECISION CORE V5.1</title>
+    <title>COGITATOR // LIFE GOAL CORE</title>
     <style>
-        /* --- 視覺核心：DOOM x 40K 樣式 --- */
-        @keyframes flicker {
-            0% { opacity: 0.9; } 5% { opacity: 0.5; } 10% { opacity: 0.8; } 15% { opacity: 1; }
-            80% { opacity: 0.9; } 90% { opacity: 0.7; } 100% { opacity: 1; }
-        }
-
         :root {
             --bg: #0a0a0a;
             --doom-red: #ff2e2e;
             --neon-green: #00ff41;
-            --metal: #333;
-            --text-gray: #999;
-            --font-main: "Courier New", Courier, monospace;
+            --border-color: #ff2e2e;
+            --font: "Courier New", Courier, monospace;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             background-color: var(--bg);
             background-image: radial-gradient(circle, #1a0000 0%, #0a0a0a 100%);
             color: var(--doom-red);
-            font-family: var(--font-main);
+            font-family: var(--font);
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -34,334 +26,203 @@
             letter-spacing: 1px;
         }
 
-        /* 掃描線特效 */
+        /* Scanline Effect */
         body::after {
             content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
                         linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
             background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-            z-index: 1000;
+            pointer-events: none; z-index: 1000;
         }
 
-        /* Header */
         header {
             padding: 15px 20px;
             border-bottom: 2px solid var(--doom-red);
             background: rgba(20, 0, 0, 0.9);
             box-shadow: 0 0 15px var(--doom-red);
+        }
+
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .brand { font-weight: bold; font-size: 16px; text-shadow: 0 0 8px var(--doom-red); }
+        
+        /* 🎯 LIFE GOAL DISPLAY */
+        .objective-banner {
+            border: 1px solid var(--neon-green);
+            background: rgba(0, 255, 65, 0.05);
+            padding: 8px 12px;
+            color: var(--neon-green);
+            font-size: 12px;
+            text-transform: uppercase;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            z-index: 10;
+            gap: 10px;
         }
+        .objective-label { font-weight: 900; background: var(--neon-green); color: #000; padding: 2px 5px; }
 
-        .brand-group { display: flex; flex-direction: column; }
-        .brand { font-size: 14px; font-weight: bold; text-shadow: 0 0 5px var(--doom-red); animation: flicker 3s infinite; }
-        .status-tag { font-size: 10px; color: var(--neon-green); font-weight: bold; text-transform: uppercase; margin-top: 2px; }
-
-        .clear-btn {
-            background: transparent;
-            border: 1px solid var(--doom-red);
-            color: var(--doom-red);
-            padding: 4px 12px;
-            font-size: 10px;
-            font-family: var(--font-main);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .clear-btn:hover { background: var(--doom-red); color: #000; box-shadow: 0 0 10px var(--doom-red); }
-
-        /* Chat Flow */
         #chat-flow {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--doom-red) var(--bg);
+            flex: 1; overflow-y: auto; padding: 20px;
+            display: flex; flex-direction: column; gap: 20px;
         }
 
-        #chat-flow::-webkit-scrollbar { width: 4px; }
-        #chat-flow::-webkit-scrollbar-thumb { background: var(--doom-red); }
-
-        .msg-wrapper { display: flex; width: 100%; animation: fadeIn 0.4s ease forwards; }
+        .msg-wrapper { display: flex; width: 100%; }
         .msg-wrapper.user { justify-content: flex-end; }
-        .msg-wrapper.ai { justify-content: flex-start; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
         .bubble {
-            max-width: 80%;
-            padding: 15px;
-            font-size: 14px;
-            line-height: 1.5;
-            position: relative;
-            border: 1px solid transparent;
+            max-width: 80%; padding: 15px; border: 1px solid transparent; font-size: 14px;
         }
-
         .ai .bubble {
-            background: rgba(255, 46, 46, 0.1);
-            border-color: var(--doom-red);
-            color: var(--doom-red);
+            background: rgba(255, 46, 46, 0.1); border-color: var(--doom-red);
             box-shadow: inset 0 0 10px rgba(255, 46, 46, 0.1);
             clip-path: polygon(0 0, 100% 0, 100% 85%, 95% 100%, 0 100%);
         }
-
         .user .bubble {
-            background: rgba(0, 255, 65, 0.05);
-            border-color: var(--neon-green);
-            color: var(--neon-green);
-            box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.1);
+            background: rgba(0, 255, 65, 0.05); border-color: var(--neon-green); color: var(--neon-green);
             clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 15%);
         }
 
-        /* Decision Card */
+        /* DECISION CARD UPGRADE */
         .card {
-            border: 1px solid var(--doom-red);
-            background: rgba(30, 0, 0, 0.9);
-            padding: 18px;
-            margin-top: 10px;
-            box-shadow: 0 0 15px var(--doom-red);
-            width: 100%;
+            border: 1px solid var(--doom-red); background: rgba(25, 0, 0, 0.95);
+            padding: 20px; box-shadow: 0 0 20px var(--doom-red); width: 100%; margin-top: 10px;
         }
-        .card-title { font-weight: bold; font-size: 16px; border-bottom: 1px solid var(--doom-red); margin-bottom: 10px; padding-bottom: 5px; display: block; }
-        .card-rec { color: var(--neon-green); margin-bottom: 15px; font-weight: bold; border-left: 3px solid var(--neon-green); padding-left: 10px; display: block; font-size: 14px; }
-        .opt-box { background: rgba(255, 255, 255, 0.05); padding: 12px; margin-bottom: 10px; border: 1px solid #444; }
-        .opt-head { color: var(--doom-red); font-weight: bold; display: block; margin-bottom: 5px; font-size: 13px; text-transform: uppercase; }
-        .next-step { margin-top: 15px; color: #fff; font-size: 12px; font-style: italic; border-top: 1px dashed var(--doom-red); padding-top: 10px; }
+        .card-h { font-weight: bold; border-bottom: 1px solid var(--doom-red); padding-bottom: 8px; margin-bottom: 12px; }
+        .tag-row { display: flex; gap: 10px; margin-bottom: 15px; font-size: 11px; }
+        .tag-alignment { background: var(--neon-green); color: #000; padding: 3px 8px; font-weight: bold; }
+        .tag-risk { background: var(--doom-red); color: #fff; padding: 3px 8px; font-weight: bold; }
+        
+        .opt { background: rgba(255,255,255,0.03); padding: 12px; border: 1px solid #444; margin-bottom: 10px; }
+        .opt-n { font-weight: bold; color: var(--doom-red); text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .next-box { margin-top: 15px; color: #fff; font-size: 12px; font-style: italic; border-top: 1px dashed #666; padding-top: 10px; }
 
-        #typing {
-            padding: 0 20px 15px;
-            font-size: 11px;
-            color: var(--neon-green);
-            display: none;
-            text-transform: uppercase;
-            animation: flicker 0.5s infinite;
-        }
+        #typing { padding: 0 20px 10px; font-size: 11px; color: var(--neon-green); display: none; }
 
-        /* Controls */
-        .controls {
-            padding: 20px;
-            background: #000;
-            border-top: 2px solid var(--doom-red);
-            max-width: 900px;
-            margin: 0 auto;
-            width: 100%;
-            z-index: 20;
-        }
-
-        .persona-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .persona-label { font-size: 11px; color: var(--text-gray); }
-
-        select {
-            background: #000;
-            color: var(--doom-red);
-            border: 1px solid var(--doom-red);
-            padding: 5px 10px;
-            font-family: var(--font-main);
-            outline: none;
-            cursor: pointer;
-        }
-
-        .input-row { display: flex; gap: 12px; }
+        .controls { padding: 20px; background: #000; border-top: 2px solid var(--doom-red); }
+        .p-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 11px; }
+        select { background: #000; color: var(--doom-red); border: 1px solid var(--doom-red); font-family: var(--font); }
+        .i-row { display: flex; gap: 10px; }
         input {
-            flex: 1;
-            background: #111;
-            border: 1px solid #444;
-            padding: 14px;
-            color: var(--neon-green);
-            font-family: var(--font-main);
-            outline: none;
-            transition: all 0.3s;
+            flex: 1; background: #111; border: 1px solid #333; padding: 12px; color: var(--neon-green); font-family: var(--font); outline: none;
         }
-        input:focus { border-color: var(--doom-red); box-shadow: 0 0 10px var(--doom-red); }
-
-        button#send-btn {
-            background: transparent;
-            border: 1px solid var(--doom-red);
-            color: var(--doom-red);
-            padding: 0 25px;
-            font-family: var(--font-main);
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
+        button {
+            background: transparent; border: 1px solid var(--doom-red); color: var(--doom-red);
+            padding: 0 20px; font-family: var(--font); font-weight: bold; cursor: pointer;
         }
-        button#send-btn:hover { background: var(--doom-red); color: #000; box-shadow: 0 0 15px var(--doom-red); }
-        button#send-btn:active { transform: scale(0.95); }
-        button#send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        button:hover { background: var(--doom-red); color: #000; box-shadow: 0 0 10px var(--doom-red); }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="brand-group">
-            <div class="brand">COGITATOR // V5.1 STABLE</div>
-            <div class="status-tag">>> DECISION CORE ONLINE // PERSISTENCE ACTIVE</div>
+        <div class="header-top">
+            <div class="brand">COGITATOR // V5.2 OBJ_CORE</div>
+            <div style="font-size: 10px; cursor: pointer; text-decoration: underline;" onclick="clearMem()">PURGE MEMORY</div>
         </div>
-        <button class="clear-btn" onclick="clearMem()">PURGE MEMORY</button>
+        <div class="objective-banner">
+            <span class="objective-label">🎯 CURRENT OBJECTIVE</span>
+            <span id="lifeGoal">NO ACTIVE OBJECTIVE DETECTED...</span>
+        </div>
     </header>
 
     <div id="chat-flow">
         <div class="msg-wrapper ai">
-            <div class="bubble">INITIATING CORE... STATE YOUR PARAMETERS.</div>
+            <div class="bubble">CORE ONLINE. 偵測到環境變量。請陳述您的「核心目標」。</div>
         </div>
     </div>
 
-    <div id="typing">CORE PROCESSING...</div>
+    <div id="typing">PROCESSOR ACTIVE...</div>
 
     <div class="controls">
-        <div class="persona-row">
-            <div class="persona-label" id="mode-label">PROTOCOL: CALM</div>
-            <select id="persona-select">
-                <option value="calm">CALM (冷靜顧問)</option>
-                <option value="direct">DIRECT (直接果斷)</option>
-                <option value="aggressive">AGGRESSIVE (強勢挑戰)</option>
+        <div class="p-row">
+            <div id="mode-lab">PROTOCOL: CALM</div>
+            <select id="persona-select" onchange="updateMode()">
+                <option value="calm">CALM</option>
+                <option value="direct">DIRECT</option>
+                <option value="aggressive">AGGRESSIVE</option>
             </select>
         </div>
-        <div class="input-row">
+        <div class="i-row">
             <input type="text" id="ui-input" placeholder="ENTER VARIABLES..." autocomplete="off">
             <button id="send-btn" onclick="send()">EXECUTE</button>
         </div>
     </div>
 
     <script>
-        // 🎯 唯一宣告點：確保不重複宣告
         const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec";
-
-        // 🔑 userId 初始化
-        let userId = localStorage.getItem("cogitator_user");
-        if (!userId) {
-            userId = "CORE_" + Date.now();
-            localStorage.setItem("cogitator_user", userId);
-        }
+        let userId = localStorage.getItem("cogitator_id") || ("CORE_" + Date.now());
+        localStorage.setItem("cogitator_id", userId);
 
         let context = [];
-        const flow = document.getElementById('chat-flow');
-        const input = document.getElementById('ui-input');
-        const btn = document.getElementById('send-btn');
-        const typing = document.getElementById('typing');
-        const personaSelect = document.getElementById('persona-select');
-        const modeLabel = document.getElementById('mode-label');
+        const flow = document.getElementById('chat-flow'), input = document.getElementById('ui-input'), btn = document.getElementById('send-btn');
+        const typing = document.getElementById('typing'), pSelect = document.getElementById('persona-select'), goalDisplay = document.getElementById('lifeGoal');
 
-        // 人格切換視覺回饋
-        personaSelect.addEventListener("change", () => {
-            modeLabel.innerText = "PROTOCOL: " + personaSelect.value.toUpperCase();
-            append("ai", "SYSTEM LOG: SWITCHING TO " + personaSelect.value.toUpperCase() + " PROTOCOL.");
-        });
-
+        function updateMode() { document.getElementById("mode-lab").innerText = "PROTOCOL: " + pSelect.value.toUpperCase(); }
+        function clearMem() { localStorage.removeItem("cogitator_id"); location.reload(); }
         function scroll() { flow.scrollTop = flow.scrollHeight; }
 
-        function clearMem() {
-            localStorage.removeItem("cogitator_user");
-            location.reload();
-        }
-
         function append(role, content, type = "text") {
-            const wrap = document.createElement('div');
-            wrap.className = `msg-wrapper ${role}`;
-            const bubble = document.createElement('div');
-            bubble.className = "bubble";
+            const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${role}`;
+            const bubble = document.createElement('div'); bubble.className = "bubble";
 
             if (type === "text") {
                 bubble.textContent = content;
             } else if (type === "decision") {
-                const d = content;
                 bubble.innerHTML = `
                     <div class="card">
-                        <span class="card-title">+++ ${d.title} +++</span>
-                        <span class="card-rec">${d.recommendation}</span>
-                        ${d.options.map(o => `
-                            <div class="opt-box">
-                                <span class="opt-head">▪ ${o.name}</span>
-                                <div style="color:var(--neon-green); font-size:11px">PROS: ${o.pros.join(' | ')}</div>
-                                <div style="color:var(--doom-red); font-size:11px">CONS: ${o.cons.join(' | ')}</div>
-                            </div>
-                        `).join('')}
-                        <div class="next-step">>> NEXT ACTION: ${d.next_action}</div>
+                        <div class="card-h">+++ DECISION PACKET: ${content.title} +++</div>
+                        <div class="tag-row">
+                            <span class="tag-alignment">🎯 目標對齊: ${content.alignment}</span>
+                            <span class="tag-risk">⚠️ 風險: ${content.risk}</span>
+                        </div>
+                        <div class="card-rec">${content.recommendation}</div>
+                        ${content.options.map(o => `<div class="opt"><span class="opt-n">${o.name}</span><div style="font-size:11px;color:var(--neon-green)">✓ ${o.pros.join(' | ')}</div><div style="font-size:11px;color:var(--doom-red)">✕ ${o.cons.join(' | ')}</div></div>`).join('')}
+                        <div class="next-box">>> SYSTEM COMMAND: ${content.next_action}</div>
                     </div>
                 `;
             }
-            wrap.appendChild(bubble);
-            flow.appendChild(wrap);
-            scroll();
+            wrap.appendChild(bubble); flow.appendChild(wrap); scroll();
         }
 
         async function send() {
-            const val = input.value.trim();
-            const persona = personaSelect.value;
-            if (!val) return;
-
-            // UI 更新
-            append("user", val);
-            context.push({ role: "user", content: val });
+            const val = input.value.trim(); if (!val) return;
+            append("user", val); context.push({ role: "user", content: val });
             if (context.length > 10) context.shift();
 
-            input.value = "";
-            btn.disabled = true;
-            typing.style.display = "block";
-            scroll();
-
-            // 模擬思考延遲
-            await new Promise(r => setTimeout(r, 800 + Math.random() * 1000));
+            input.value = ""; btn.disabled = true; typing.style.display = "block"; scroll();
 
             try {
-                // ✅ 關鍵：移除 Headers 避免 CORS OPTIONS 預檢
                 const res = await fetch(ENDPOINT, {
                     method: "POST",
-                    body: JSON.stringify({ 
-                        message: val, 
-                        context: context, 
-                        persona: persona,
-                        userId: userId
-                    })
+                    body: JSON.stringify({ message: val, context: context, persona: pSelect.value, userId: userId })
                 });
 
-                // ✅ 錯誤隔離：先抓 Text 再解析
-                const text = await res.text();
-                let data;
-                try {
-                    data = JSON.parse(text);
-                } catch (e) {
-                    typing.style.display = "none";
-                    append("ai", "ERROR: DATA CORRUPTION. CHECK GAS DEPLOYMENT.");
-                    return;
-                }
-
+                const data = await res.json();
                 typing.style.display = "none";
 
-                if (data.type === "decision") {
-                    let lead = (persona === "aggressive") ? "PARAMETERS CLEAR. EXECUTE IMMEDIATE ACTION." : "ANALYSIS COMPLETE. CONCLUSION FOLLOWS.";
-                    append("ai", lead);
-                    await new Promise(r => setTimeout(r, 1000));
-                    append("ai", data, "decision");
-                    
-                    // 記憶處理
-                    context.push({ role: "ai", content: data.recommendation });
-                } else {
-                    const fallback = ["AWAITING DATA...", "PROCESSING...", "INPUT LOGGED."];
-                    const reply = data.reply || fallback[Math.floor(Math.random() * fallback.length)];
-                    append("ai", reply);
-                    context.push({ role: "ai", content: reply });
+                // UPDATE GOAL UI
+                if (data.identity && data.identity.mainGoal) {
+                    goalDisplay.innerText = data.identity.mainGoal;
+                    goalDisplay.style.color = "var(--neon-green)";
                 }
 
+                if (data.type === "decision") {
+                    append("ai", "SYNCHRONIZING GOALS... OPTIMAL PATH CALCULATED.");
+                    await new Promise(r => setTimeout(r, 800));
+                    append("ai", data, "decision");
+                    context.push({ role: "ai", content: data.recommendation });
+                } else {
+                    append("ai", data.reply || "AWAITING FURTHER VARIABLES...");
+                    context.push({ role: "ai", content: data.reply });
+                }
                 if (context.length > 10) context.shift();
 
             } catch (err) {
                 typing.style.display = "none";
-                append("ai", "ERROR: VOID CONNECTION DETECTED. CHECK ENDPOINT.");
-                console.error("Fetch Error:", err);
+                append("ai", "ERROR: VOID CONNECTION. RE-DEPLOY CORE.");
             } finally {
-                btn.disabled = false;
-                input.focus();
+                btn.disabled = false; input.focus();
             }
         }
 
-        // Enter 鍵監聽
         input.addEventListener('keypress', (e) => { if (e.key === 'Enter') send(); });
     </script>
 </body>
