@@ -1,288 +1,101 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COGITATOR // 認知核心 // CHAT</title>
-    <style>
-        :root {
-            --bg-color: #FFF8E7;
-            --surface: #ffffff;
-            --accent-color: #F2B705;
-            --accent-hover: #D9A404;
-            --text-primary: #1d1d1f;
-            --text-secondary: #6e6e73;
-            --text-tertiary: #86868b;
-            --border-light: rgba(0,0,0,0.08);
-            --border-focus: #F2B705;
-            --ease-apple: cubic-bezier(0.25, 0.1, 0.25, 1.0);
-            --shadow-msg: 0 2px 8px rgba(0,0,0,0.04);
-        }
+/**
+ * COGITATOR ENGINE v5.1 - BACKEND CORE
+ * 功能：判斷意圖、檢查資訊完整度、決定輸出行為（提問或決策）
+ */
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
+function doPost(e) {
+  try {
+    // 1. 接收與解析前端數據
+    const contents = e.postData.contents;
+    const data = JSON.parse(contents);
+    const message = data.message || "";
+    
+    // 2. 初始化回傳物件
+    let output = {
+      "type": "text",
+      "reply": ""
+    };
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+    // 3. 決策邏輯引擎 (Pure Logic)
+    
+    // 情境 A：創業類
+    if (message.includes("創業")) {
+      const hasBudget = /([0-9]|萬|元|錢|預算)/.test(message);
+      const hasSkill = /(技術|技能|會|經驗|產品)/.test(message);
 
-        /* Header */
-        header {
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: rgba(255, 248, 231, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-light);
-            z-index: 10;
-        }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); }
-        .header-title { font-size: 12px; font-weight: 700; letter-spacing: 0.1em; color: var(--text-tertiary); text-transform: uppercase; }
-
-        /* Chat Area */
-        #chat-flow {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            scroll-behavior: smooth;
-        }
-
-        .msg-wrapper { display: flex; width: 100%; opacity: 0; transform: translateY(10px); animation: slideIn 0.4s var(--ease-apple) forwards; }
-        @keyframes slideIn { to { opacity: 1; transform: translateY(0); } }
-
-        .msg-wrapper.user { justify-content: flex-end; }
-        .msg-wrapper.ai { justify-content: flex-start; }
-
-        .bubble {
-            max-width: 75%;
-            padding: 14px 18px;
-            border-radius: 20px;
-            font-size: 15px;
-            line-height: 1.5;
-            box-shadow: var(--shadow-msg);
-            white-space: pre-wrap;
-        }
-
-        .user .bubble {
-            background-color: var(--text-primary);
-            color: #fff;
-            border-bottom-right-radius: 4px;
-        }
-
-        .ai .bubble {
-            background-color: var(--surface);
-            color: var(--text-primary);
-            border: 1px solid var(--border-light);
-            border-bottom-left-radius: 4px;
-        }
-
-        /* Orb Loading Area */
-        #ai-thinking {
-            display: none;
-            padding: 0 20px 20px;
-            align-items: center;
-            gap: 15px;
-        }
-        .orb-container { position: relative; width: 32px; height: 32px; }
-        .orb {
-            position: absolute; width: 100%; height: 100%;
-            border-radius: 50%; background: var(--accent-color);
-            opacity: 0.2; animation: breathe 1.5s infinite alternate ease-in-out;
-        }
-        @keyframes breathe { from { transform: scale(0.8); opacity: 0.1; } to { transform: scale(1.3); opacity: 0.4; } }
-        .thinking-text { font-size: 13px; color: var(--text-tertiary); font-weight: 500; }
-
-        /* Input Area */
-        .input-wrapper {
-            padding: 24px;
-            background: var(--bg-color);
-            border-top: 1px solid var(--border-light);
-        }
-        .input-container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: var(--surface);
-            border-radius: 16px;
-            padding: 8px 12px;
-            display: flex;
-            align-items: flex-end;
-            border: 1px solid var(--border-light);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-            transition: border-color 0.3s;
-        }
-        .input-container:focus-within { border-color: var(--accent-color); }
-
-        textarea {
-            flex: 1;
-            background: transparent;
-            border: none;
-            padding: 10px;
-            font-size: 16px;
-            color: var(--text-primary);
-            resize: none;
-            outline: none;
-            max-height: 150px;
-            min-height: 24px;
-            line-height: 1.5;
-        }
-
-        #send-btn {
-            background: var(--accent-color);
-            border: none;
-            width: 36px;
-            height: 36px;
-            border-radius: 12px;
-            cursor: pointer;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        #send-btn:hover { background: var(--accent-hover); transform: scale(1.05); }
-        #send-btn:active { transform: scale(0.95); }
-        #send-btn svg { fill: #000; width: 18px; height: 18px; }
-
-        .endpoint-hint {
-            text-align: center;
-            font-size: 11px;
-            color: var(--text-tertiary);
-            margin-top: 12px;
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <div class="status-dot"></div>
-        <div class="header-title">COGITATOR // 認知核心 // V5.1</div>
-    </header>
-
-    <div id="chat-flow">
-        <div class="msg-wrapper ai">
-            <div class="bubble">系統已就緒。請輸入當前面臨的決策困境或瓶頸變數，核心將協助推演資源走向。</div>
-        </div>
-    </div>
-
-    <div id="ai-thinking">
-        <div class="orb-container">
-            <div class="orb"></div>
-            <div class="orb" style="animation-delay: -0.5s"></div>
-        </div>
-        <div class="thinking-text" id="thinking-label">核心推演中...</div>
-    </div>
-
-    <div class="input-wrapper">
-        <div class="input-container">
-            <textarea id="user-input" rows="1" placeholder="輸入變數描述..."></textarea>
-            <button id="send-btn" onclick="handleSend()">
-                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </button>
-        </div>
-        <div class="endpoint-hint">
-            數據將同步至設定之端點 URL
-        </div>
-    </div>
-
-    <script>
-        // 設定端點 URL (請在此替換)
-        const ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec";
-
-        const chatFlow = document.getElementById('chat-flow');
-        const userInput = document.getElementById('user-input');
-        const aiThinking = document.getElementById('ai-thinking');
-        const thinkingLabel = document.getElementById('thinking-label');
-
-        // 自動調整輸入框高度
-        userInput.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
-        });
-
-        // 監聽 Enter 送出 (Shift+Enter 換行)
-        userInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSend();
+      if (!hasBudget || !hasSkill) {
+        output.reply = "偵測到創業決策意圖。為了生成精準模型，核心需要確認：\n1. 預計投入的「資金預算」？\n2. 目前掌握的「核心技術或資源」？";
+      } else {
+        output = {
+          "type": "decision",
+          "title": "創業啟動路徑建議",
+          "recommendation": "執行 MVP (最小可行性產品) 驗證，限制首波資金投入於核心功能。",
+          "options": [
+            {
+              "name": "方案 A：精實啟動 (Lean)",
+              "pros": ["風險極低", "可快速迭代"],
+              "cons": ["市場進入速度較慢", "初期資源有限"]
+            },
+            {
+              "name": "方案 B：槓桿啟動 (Leverage)",
+              "pros": ["快速佔領市場", "規模效應強"],
+              "cons": ["資金壓力大", "容錯率低"]
             }
-        });
-
-        function appendMessage(role, text) {
-            const wrapper = document.createElement('div');
-            wrapper.className = `msg-wrapper ${role}`;
-            wrapper.innerHTML = `<div class="bubble">${text}</div>`;
-            chatFlow.appendChild(wrapper);
-            scrollToBottom();
-        }
-
-        function scrollToBottom() {
-            chatFlow.scrollTop = chatFlow.scrollHeight;
-        }
-
-        async function handleSend() {
-            const message = userInput.value.trim();
-            if (!message) return;
-
-            // 1. 顯示使用者訊息
-            appendMessage('user', message);
-            userInput.value = '';
-            userInput.style.height = 'auto';
-
-            // 2. 顯示思考動畫
-            aiThinking.style.display = 'flex';
-            scrollToBottom();
-
-            // 3. 狀態文字動態效果
-            const statusTicks = ["校準權重...", "檢索歷史變數...", "評估盲點...", "格式化報告..."];
-            let tick = 0;
-            const tickTimer = setInterval(() => {
-                thinkingLabel.innerText = statusTicks[tick % statusTicks.length];
-                tick++;
-            }, 800);
-
-            // 4. API 呼叫 (修復：加入 Headers 並處理 JSON)
-            try {
-                const response = await fetch(ENDPOINT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        timestamp: Date.now()
-                    })
-                });
-
-                if (!response.ok) throw new Error('連線異常');
-
-                const data = await response.json();
-                
-                // 5. 處理回傳並顯示
-                clearInterval(tickTimer);
-                aiThinking.style.display = 'none';
-                
-                if (data.reply) {
-                    appendMessage('ai', data.reply);
-                } else {
-                    appendMessage('ai', "核心已接收數據，但回傳格式未定義。");
-                }
-
-            } catch (error) {
-                clearInterval(tickTimer);
-                aiThinking.style.display = 'none';
-                appendMessage('ai', "⚠️ 系統端點連線失敗。請確認 URL 設定正確並已啟用 CORS。");
-                console.error('API Error:', error);
+          ],
+          "next_action": "定義第一階段驗證成功的具體數據指標 (例如：前 10 名付費客戶)。"
+        };
+      }
+    } 
+    
+    // 情境 B：執行卡住類
+    else if (message.includes("卡住") || message.includes("瓶頸")) {
+      const hasReason = /(因為|造成|原因|問題在於)/.test(message);
+      
+      if (!hasReason) {
+        output.reply = "系統識別執行阻礙。請客觀陳述導致卡住的「限制因素」：是關於『決策權限』、『技術缺口』還是『資源短缺』？";
+      } else {
+        output = {
+          "type": "decision",
+          "title": "瓶頸突破策略",
+          "recommendation": "進行「壓力轉移」，暫停次要任務，集中資源攻克當前單點障礙。",
+          "options": [
+            {
+              "name": "外包/求助",
+              "pros": ["立即解決缺口", "節省內部時間"],
+              "cons": ["增加成本", "核心技術可能流失"]
+            },
+            {
+              "name": "簡化目標",
+              "pros": ["降低執行難度", "確保按時交付"],
+              "cons": ["產品完整度下降"]
             }
-        }
-    </script>
-</body>
-</html>
+          ],
+          "next_action": "列出解決該卡點所需的最低資源清單。"
+        };
+      }
+    }
+
+    // 情境 C：模糊輸入 / 混亂
+    else if (message.includes("亂") || message.length < 15) {
+      output.reply = "核心偵測到資訊熵過高。請按照以下結構重新描述：\n[目標]：想達成什麼？\n[現狀]：目前有什麼？\n[阻礙]：擔心什麼？";
+    }
+
+    // 情境 D：一般想法收集
+    else {
+      output.reply = "訊息已存入緩衝。請補充該想法的「執行期限」與「預期風險」，系統將以此生成完整的決策對比卡片。";
+    }
+
+    // 4. 回傳 JSON (設定 MimeType 避免 CORS 預檢問題)
+    return ContentService.createTextOutput(JSON.stringify(output))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    // 錯誤防護機制
+    const errorResponse = {
+      "type": "text",
+      "reply": "⚠️ 核心邏輯異常：無法解析輸入變數。原因：" + error.message
+    };
+    return ContentService.createTextOutput(JSON.stringify(errorResponse))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
