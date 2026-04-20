@@ -3,195 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COGITATOR 決策引擎</title>
+<title>COGITATOR</title>
 
 <style>
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-    background: #FFF8E7;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    padding: 40px 20px;
+  font-family: Arial;
+  background: #FFF8E7;
+  display:flex;
+  justify-content:center;
+  padding:40px;
 }
 
-.container {
-    max-width: 600px;
-    width: 100%;
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
+.box {
+  background:#fff;
+  padding:30px;
+  width:400px;
+  border-radius:10px;
 }
 
-textarea, input {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
+input, textarea {
+  width:100%;
+  padding:10px;
+  margin-top:10px;
 }
 
 button {
-    margin-top: 15px;
-    width: 100%;
-    padding: 12px;
-    background: #F2B705;
-    border: none;
-}
-
-.loading, .result {
-    display: none;
-    margin-top: 20px;
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  background:#F2B705;
+  border:none;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<div class="box">
 
-<h2>你現在這個決策，會直接影響你接下來的時間與資源</h2>
+<h3>輸入你的決策問題</h3>
 
-<div id="form">
-<textarea id="problem" placeholder="輸入你的問題"></textarea>
-<input id="email" placeholder="你的Email">
-<button onclick="submitForm()">提交並開始推演</button>
-</div>
+<textarea id="problem"></textarea>
+<input id="email" placeholder="Email">
 
-<div id="loading" class="loading">
-<p>正在分析你的決策風險...</p>
-</div>
+<button onclick="send()">送出</button>
 
-<div id="result" class="result">
-👉 已接收，你的分析會在 24 小時內寄出
-</div>
+<p id="status"></p>
 
 </div>
 
 <script>
-async function submitForm() {
+async function send(){
 
-    let problem = document.getElementById("problem").value.trim();
-    let email = document.getElementById("email").value.trim();
+  let problem = document.getElementById("problem").value;
+  let email = document.getElementById("email").value;
 
-    if (!problem || !email) {
-        alert("請填完整");
-        return;
-    }
+  if(!problem || !email){
+    alert("填完整");
+    return;
+  }
 
-    // 🔥 這裡已接 Google Sheet
-    await fetch("https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec", {
-        method: "POST",
-        body: JSON.stringify({
-            problem: problem,
-            email: email
-        })
-    });
+  document.getElementById("status").innerText="送出中...";
 
-    document.getElementById("form").style.display = "none";
-    document.getElementById("loading").style.display = "block";
+  await fetch("https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec",{
+    method:"POST",
+    body: JSON.stringify({problem,email})
+  });
 
-    setTimeout(() => {
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("result").style.display = "block";
-    }, 2000);
+  document.getElementById("status").innerText="完成（去看Sheet）";
 }
 </script>
 
 </body>
-</html>        }
-
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .status-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background-color: var(--text-primary);
-            opacity: 0.3;
-        }
-
-        /* 主卡片 */
-        .card {
-            background: var(--surface);
-            border-radius: 20px;
-            box-shadow: var(--shadow-float);
-            border: 1px solid var(--border-light);
-            padding: 48px 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* 狀態切換 */
-        .state-layer {
-            display: none;
-            opacity: 0;
-            transform: translateY(8px) scale(0.99);
-            transition: opacity 0.6s var(--ease-apple), transform 0.6s var(--ease-apple);
-        }
-
-        .state-layer.is-active {
-            display: block;
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-
-        /* Typography */
-        h1 {
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: -0.03em;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            line-height: 1.2;
-        }
-
-        .subtitle {
-            font-size: 15px;
-            color: var(--text-secondary);
-            margin-bottom: 32px;
-            font-weight: 400;
-        }
-
-        .tension-banner {
-            background: var(--danger-bg);
-            color: var(--danger-text);
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 32px;
-            border: 1px solid rgba(215, 48, 48, 0.08);
-            letter-spacing: 0.01em;
-        }
-
-        /* 表單元素 */
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            letter-spacing: -0.01em;
-        }
-
-        .help-text {
-            display: block;
-            font-size: 13px;
-            color: var(--text-tertiary);
-            margin-bottom: 12px;
-            margin-top: -4px;
-        }
-
-        input, textarea {
+</html>        input, textarea {
             width: 100%;
             background: transparent;
             border: 1px solid var(--border-light);
