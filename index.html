@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COGITATOR // 測試發布版</title>
+    <title>COGITATOR // 認知核心 CONNECTION FIX</title>
     <style>
         :root {
-            --bg: #FFF8E7;
+            --bg: #FFF8E7; /* 奶油白 */
             --user: #1d1d1f;
             --ai: #ffffff;
-            --accent: #F2B705;
+            --accent: #F2B705; /* 蜂蜜黃 */
             --border: rgba(0,0,0,0.08);
             --text: #1d1d1f;
             --text-l: #86868b;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
         body { background: var(--bg); height: 100vh; display: flex; flex-direction: column; color: var(--text); overflow: hidden; }
-        header { padding: 12px 20px; background: rgba(255,248,231,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .brand-info { display: flex; flex-direction: column; }
+        header { padding: 12px 20px; background: rgba(255, 248, 231, 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
         .brand-name { font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--text-l); text-transform: uppercase; }
         .status { font-size: 10px; color: #0ecb81; font-weight: bold; }
         .reset-btn { background: transparent; border: 1px solid #ff4d4f; color: #ff4d4f; padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
@@ -47,14 +46,14 @@
     <header>
         <div class="brand-info">
             <div class="brand-name">COGITATOR // V5.1</div>
-            <div class="status">● 已啟用記憶模式</div>
+            <div class="status">● 連線修正版 (No-Headers Mode)</div>
         </div>
         <button class="reset-btn" onclick="clearMem()">清除記憶</button>
     </header>
     <div id="chat-flow">
-        <div class="msg-wrapper ai"><div class="bubble">你現在卡在哪？</div></div>
+        <div class="msg-wrapper ai"><div class="bubble">系統已優化連線機制，請輸入變數啟動推演。</div></div>
     </div>
-    <div id="typing">思考中...</div>
+    <div id="typing">正在思考...</div>
     <div class="controls">
         <div class="p-row">
             <span style="font-size: 11px; font-weight: 800; color: var(--text-l);">AI 人格：</span>
@@ -62,6 +61,97 @@
                 <option value="calm">冷靜顧問 (Calm)</option>
                 <option value="direct">直接果斷 (Direct)</option>
                 <option value="aggressive">強勢挑戰 (Aggressive)</option>
+            </select>
+        </div>
+        <div class="i-row">
+            <input type="text" id="ui-input" placeholder="輸入決策變數..." autocomplete="off">
+            <button id="send-btn" onclick="send()">發送</button>
+        </div>
+    </div>
+    <script>
+        const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec";
+        
+        let userId = localStorage.getItem("cogitator_user") || ("user_" + Date.now());
+        localStorage.setItem("cogitator_user", userId);
+        
+        let context = [];
+        const flow = document.getElementById('chat-flow'), input = document.getElementById('ui-input');
+        const btn = document.getElementById('send-btn'), typing = document.getElementById('typing'), personaSelect = document.getElementById('persona-select');
+
+        function clearMem() { localStorage.removeItem("cogitator_user"); location.reload(); }
+        function scroll() { flow.scrollTop = flow.scrollHeight; }
+
+        function append(role, content, type = "text") {
+            const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${role}`;
+            const bubble = document.createElement('div'); bubble.className = "bubble";
+            if (type === "text") bubble.textContent = content;
+            else if (type === "decision") {
+                bubble.innerHTML = `<div class="card"><span class="card-title">【${content.title}】</span><span class="card-rec">${content.recommendation}</span>${content.options.map(o => `<div class="opt"><span class="opt-name">▪ ${o.name}</span><div>✓ ${o.pros.join('、')}</div><div>✕ ${o.cons.join('、')}</div></div>`).join('')}<div class="next">🚀 下一步：${content.next_action}</div></div>`;
+            }
+            wrap.appendChild(bubble); flow.appendChild(wrap); scroll();
+        }
+
+        async function send() {
+            const val = input.value.trim(), persona = personaSelect.value;
+            if (!val) return;
+
+            append("user", val); 
+            context.push({ role: "user", content: val });
+            if (context.length > 10) context.shift();
+
+            input.value = ""; btn.disabled = true; typing.style.display = "block"; scroll();
+            
+            try {
+                // ✅ 關鍵修正：完全移除 headers 以避開 OPTIONS 預檢
+                const res = await fetch(ENDPOINT, { 
+                    method: "POST", 
+                    body: JSON.stringify({ 
+                        message: val, 
+                        context: context, 
+                        persona: persona, 
+                        userId: userId 
+                    }) 
+                });
+
+                // ✅ 任務 2：優化錯誤處理
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    typing.style.display = "none";
+                    append("ai", "伺服器回應格式錯誤");
+                    console.error("Parse Error:", text);
+                    return;
+                }
+
+                typing.style.display = "none";
+
+                if (data.type === "decision") {
+                    let lead = (persona === "aggressive") ? "別再想了，直接看這個" : (persona === "direct" ? "結論在這裡" : "我先給你一個方向");
+                    append("ai", lead); 
+                    await new Promise(r => setTimeout(r, 800)); 
+                    append("ai", data, "decision");
+                    context.push({ role: "ai", content: data.recommendation + " / " + data.next_action });
+                } else {
+                    const fallback = ["了解", "我想一下", "有點意思"];
+                    const reply = data.reply || fallback[Math.floor(Math.random()*fallback.length)];
+                    append("ai", reply); 
+                    context.push({ role: "ai", content: reply });
+                }
+                if (context.length > 10) context.shift();
+
+            } catch (err) { 
+                typing.style.display = "none"; 
+                append("ai", "連線失敗（可能是 GAS 權限或 CORS）"); 
+                console.error("Fetch Error:", err);
+            }
+            finally { btn.disabled = false; input.focus(); }
+        }
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') send(); });
+    </script>
+</body>
+</html>                <option value="aggressive">強勢挑戰 (Aggressive)</option>
             </select>
         </div>
         <div class="i-row">
