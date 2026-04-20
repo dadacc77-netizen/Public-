@@ -1,101 +1,291 @@
-/**
- * COGITATOR ENGINE v5.1 - BACKEND CORE
- * 功能：判斷意圖、檢查資訊完整度、決定輸出行為（提問或決策）
- */
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COGITATOR // 記憶引擎 FINAL</title>
+    <style>
+        :root {
+            --bg-color: #FFF8E7; /* 奶油白 */
+            --user-bubble: #1d1d1f;
+            --ai-bubble: #ffffff;
+            --accent: #F2B705; /* 蜂蜜黃 */
+            --border: rgba(0,0,0,0.08);
+            --text: #1d1d1f;
+            --text-light: #86868b;
+        }
 
-function doPost(e) {
-  try {
-    // 1. 接收與解析前端數據
-    const contents = e.postData.contents;
-    const data = JSON.parse(contents);
-    const message = data.message || "";
-    
-    // 2. 初始化回傳物件
-    let output = {
-      "type": "text",
-      "reply": ""
-    };
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
 
-    // 3. 決策邏輯引擎 (Pure Logic)
-    
-    // 情境 A：創業類
-    if (message.includes("創業")) {
-      const hasBudget = /([0-9]|萬|元|錢|預算)/.test(message);
-      const hasSkill = /(技術|技能|會|經驗|產品)/.test(message);
+        body {
+            background-color: var(--bg-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--text);
+            overflow: hidden;
+        }
 
-      if (!hasBudget || !hasSkill) {
-        output.reply = "偵測到創業決策意圖。為了生成精準模型，核心需要確認：\n1. 預計投入的「資金預算」？\n2. 目前掌握的「核心技術或資源」？";
-      } else {
-        output = {
-          "type": "decision",
-          "title": "創業啟動路徑建議",
-          "recommendation": "執行 MVP (最小可行性產品) 驗證，限制首波資金投入於核心功能。",
-          "options": [
-            {
-              "name": "方案 A：精實啟動 (Lean)",
-              "pros": ["風險極低", "可快速迭代"],
-              "cons": ["市場進入速度較慢", "初期資源有限"]
-            },
-            {
-              "name": "方案 B：槓桿啟動 (Leverage)",
-              "pros": ["快速佔領市場", "規模效應強"],
-              "cons": ["資金壓力大", "容錯率低"]
+        /* Header */
+        header {
+            padding: 12px 20px;
+            background: rgba(255, 248, 231, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .brand-group { display: flex; flex-direction: column; }
+        .brand { font-size: 11px; font-weight: 800; letter-spacing: 2px; color: var(--text-light); text-transform: uppercase; }
+        .status-tag { font-size: 10px; color: #0ecb81; font-weight: bold; margin-top: 2px; }
+
+        .clear-btn {
+            background: transparent;
+            border: 1px solid #ff4d4f;
+            color: #ff4d4f;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .clear-btn:hover { background: #ff4d4f; color: #fff; }
+
+        /* Chat Area */
+        #chat-flow {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            scroll-behavior: smooth;
+        }
+
+        .msg-wrapper { display: flex; width: 100%; animation: fadeIn 0.3s ease; }
+        .msg-wrapper.user { justify-content: flex-end; }
+        .msg-wrapper.ai { justify-content: flex-start; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .bubble {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 20px;
+            font-size: 15px;
+            line-height: 1.5;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            white-space: pre-wrap;
+        }
+
+        .user .bubble {
+            background-color: var(--user-bubble);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai .bubble {
+            background-color: var(--ai-bubble);
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 4px;
+        }
+
+        /* Decision Card */
+        .card {
+            background: #fff;
+            border: 2px solid var(--accent);
+            border-radius: 14px;
+            padding: 18px;
+            margin-top: 8px;
+            width: 100%;
+        }
+        .card-title { font-weight: 800; color: var(--accent); margin-bottom: 8px; display: block; }
+        .card-rec { font-weight: 600; margin-bottom: 12px; display: block; border-left: 3px solid var(--accent); padding-left: 10px; }
+        .opt-box { margin-bottom: 10px; padding: 10px; background: #fafafa; border-radius: 10px; font-size: 13px; }
+        .opt-head { font-weight: bold; display: block; margin-bottom: 4px; }
+        .next-step { margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 10px; font-size: 13px; font-weight: bold; color: var(--text-light); }
+
+        #typing { display: none; font-size: 12px; color: var(--text-light); margin: 0 0 10px 20px; font-weight: bold; }
+
+        /* Controls */
+        .controls {
+            background: var(--bg-color);
+            border-top: 1px solid var(--border);
+            padding: 15px 20px 30px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .persona-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .persona-row select {
+            flex: 1; padding: 8px; border-radius: 10px; border: 1px solid var(--border); background: #fff; font-size: 13px; outline: none;
+        }
+
+        .input-row { display: flex; gap: 10px; }
+        input {
+            flex: 1; padding: 14px 20px; border-radius: 25px; border: 1px solid var(--border); outline: none; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        button#send-btn {
+            background-color: var(--accent); border: none; padding: 0 22px; border-radius: 25px; font-weight: 800; cursor: pointer; transition: transform 0.1s;
+        }
+        button#send-btn:active { transform: scale(0.96); }
+        button#send-btn:disabled { opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-group">
+            <div class="brand">COGITATOR // V5.1</div>
+            <div class="status-tag">● 已啟用記憶模式</div>
+        </div>
+        <button class="clear-btn" onclick="clearMemory()">清除記憶</button>
+    </header>
+
+    <div id="chat-flow">
+        <div class="msg-wrapper ai">
+            <div class="bubble">你現在卡在哪？</div>
+        </div>
+    </div>
+
+    <div id="typing">思考中...</div>
+
+    <div class="controls">
+        <div class="persona-row">
+            <span style="font-size: 11px; font-weight: 800; color: var(--text-light);">AI 人格：</span>
+            <select id="persona-select">
+                <option value="calm">冷靜顧問 (Calm)</option>
+                <option value="direct">直接果斷 (Direct)</option>
+                <option value="aggressive">強勢挑戰 (Aggressive)</option>
+            </select>
+        </div>
+        <div class="input-row">
+            <input type="text" id="ui-input" placeholder="隨便打一句就好" autocomplete="off">
+            <button id="send-btn" onclick="send()">發送</button>
+        </div>
+    </div>
+
+    <script>
+        const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec";
+        
+        // 🔑 userId  Persistent Logic
+        let userId = localStorage.getItem("cogitator_user");
+        if (!userId) {
+            userId = "user_" + Date.now();
+            localStorage.setItem("cogitator_user", userId);
+        }
+
+        let context = [];
+        const flow = document.getElementById('chat-flow');
+        const input = document.getElementById('ui-input');
+        const btn = document.getElementById('send-btn');
+        const typing = document.getElementById('typing');
+        const personaSelect = document.getElementById('persona-select');
+
+        function scroll() { flow.scrollTop = flow.scrollHeight; }
+
+        function clearMemory() {
+            localStorage.removeItem("cogitator_user");
+            location.reload();
+        }
+
+        function append(role, content, type = "text") {
+            const wrap = document.createElement('div');
+            wrap.className = `msg-wrapper ${role}`;
+            const bubble = document.createElement('div');
+            bubble.className = "bubble";
+
+            if (type === "text") {
+                bubble.textContent = content;
+            } else if (type === "decision") {
+                bubble.innerHTML = `
+                    <div class="card">
+                        <span class="card-title">【${content.title}】</span>
+                        <span class="card-rec">${content.recommendation}</span>
+                        ${content.options.map(o => `
+                            <div class="opt-box">
+                                <span class="opt-head">▪ ${o.name}</span>
+                                <div>✓ ${o.pros.join('、')}</div>
+                                <div>✕ ${o.cons.join('、')}</div>
+                            </div>
+                        `).join('')}
+                        <div class="next-step">🚀 下一步：${content.next_action}</div>
+                    </div>
+                `;
             }
-          ],
-          "next_action": "定義第一階段驗證成功的具體數據指標 (例如：前 10 名付費客戶)。"
-        };
-      }
-    } 
-    
-    // 情境 B：執行卡住類
-    else if (message.includes("卡住") || message.includes("瓶頸")) {
-      const hasReason = /(因為|造成|原因|問題在於)/.test(message);
-      
-      if (!hasReason) {
-        output.reply = "系統識別執行阻礙。請客觀陳述導致卡住的「限制因素」：是關於『決策權限』、『技術缺口』還是『資源短缺』？";
-      } else {
-        output = {
-          "type": "decision",
-          "title": "瓶頸突破策略",
-          "recommendation": "進行「壓力轉移」，暫停次要任務，集中資源攻克當前單點障礙。",
-          "options": [
-            {
-              "name": "外包/求助",
-              "pros": ["立即解決缺口", "節省內部時間"],
-              "cons": ["增加成本", "核心技術可能流失"]
-            },
-            {
-              "name": "簡化目標",
-              "pros": ["降低執行難度", "確保按時交付"],
-              "cons": ["產品完整度下降"]
+            wrap.appendChild(bubble);
+            flow.appendChild(wrap);
+            scroll();
+        }
+
+        async function send() {
+            const val = input.value.trim();
+            const persona = personaSelect.value;
+            if (!val) return;
+
+            // UI: User Msg
+            append("user", val);
+            context.push({ role: "user", content: val });
+            if (context.length > 10) context.shift();
+
+            input.value = "";
+            btn.disabled = true;
+            typing.style.display = "block";
+            scroll();
+
+            // AI Rhythm Delay
+            await new Promise(r => setTimeout(r, 700 + Math.random() * 1000));
+
+            try {
+                const res = await fetch(ENDPOINT, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        message: val, 
+                        context: context, 
+                        persona: persona,
+                        userId: userId
+                    })
+                });
+
+                if (!res.ok) throw new Error();
+
+                const data = await res.json();
+                typing.style.display = "none";
+
+                if (data.type === "decision") {
+                    // Pressure-based lead
+                    let lead = "我先給你一個方向";
+                    if (persona === "aggressive") lead = "別再想了，直接看這個";
+                    if (persona === "direct") lead = "結論在這裡";
+                    
+                    append("ai", lead);
+                    await new Promise(r => setTimeout(r, 800));
+                    append("ai", data, "decision");
+                    
+                    context.push({ role: "ai", content: data.recommendation || data.title });
+                } else {
+                    append("ai", data.reply || "...");
+                    context.push({ role: "ai", content: data.reply || "回應" });
+                }
+
+                if (context.length > 10) context.shift();
+
+            } catch (err) {
+                typing.style.display = "none";
+                append("ai", "好像斷線了，重試看看");
+            } finally {
+                btn.disabled = false;
+                input.focus();
             }
-          ],
-          "next_action": "列出解決該卡點所需的最低資源清單。"
-        };
-      }
-    }
+        }
 
-    // 情境 C：模糊輸入 / 混亂
-    else if (message.includes("亂") || message.length < 15) {
-      output.reply = "核心偵測到資訊熵過高。請按照以下結構重新描述：\n[目標]：想達成什麼？\n[現狀]：目前有什麼？\n[阻礙]：擔心什麼？";
-    }
-
-    // 情境 D：一般想法收集
-    else {
-      output.reply = "訊息已存入緩衝。請補充該想法的「執行期限」與「預期風險」，系統將以此生成完整的決策對比卡片。";
-    }
-
-    // 4. 回傳 JSON (設定 MimeType 避免 CORS 預檢問題)
-    return ContentService.createTextOutput(JSON.stringify(output))
-      .setMimeType(ContentService.MimeType.JSON);
-
-  } catch (error) {
-    // 錯誤防護機制
-    const errorResponse = {
-      "type": "text",
-      "reply": "⚠️ 核心邏輯異常：無法解析輸入變數。原因：" + error.message
-    };
-    return ContentService.createTextOutput(JSON.stringify(errorResponse))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') send(); });
+    </script>
+</body>
+</html>
