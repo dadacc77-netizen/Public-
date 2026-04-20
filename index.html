@@ -13,26 +13,26 @@
         }
         body::after {
             content: ""; position: absolute; top:0; left:0; width:100%; height:100%;
-            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.1) 50%), linear-gradient(90deg, rgba(255,0,0,0.02), rgba(0,255,0,0.01), rgba(0,0,255,0.02));
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
             background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 1000;
         }
-        header { padding: 15px 20px; border-bottom: 2px solid var(--red); background: rgba(20,0,0,0.9); box-shadow: 0 0 15px var(--red); z-index: 10; }
+        header { padding: 15px 20px; border-bottom: 2px solid var(--red); background: rgba(20, 0, 0, 0.9); box-shadow: 0 0 15px var(--red); z-index: 10; }
         .header-top { display: flex; justify-content: space-between; align-items: center; }
         .brand { font-weight: bold; text-shadow: 0 0 8px var(--red); }
-        .status-bar { border: 1px solid var(--green); background: rgba(0,255,65,0.05); padding: 8px 12px; color: var(--green); font-size: 11px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 15px; }
+        .status-bar { border: 1px solid var(--green); background: rgba(0, 255, 65, 0.05); padding: 8px 12px; color: var(--green); font-size: 11px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 15px; }
         .tag { font-weight: 900; background: var(--green); color: #000; padding: 0 5px; margin-right: 5px; }
         
         #chat-flow { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
         .msg-wrapper { display: flex; width: 100%; animation: fadeIn 0.3s forwards; }
         .msg-wrapper.user { justify-content: flex-end; }
         .bubble { max-width: 85%; padding: 15px; border: 1px solid transparent; font-size: 14px; line-height: 1.5; }
-        .ai .bubble { background: rgba(255,46,46,0.1); border-color: var(--red); clip-path: polygon(0 0, 100% 0, 100% 92%, 95% 100%, 0 100%); }
-        .user .bubble { background: rgba(0,255,65,0.05); border-color: var(--green); color: var(--green); clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 12%); }
+        .ai .bubble { background: rgba(255, 46, 46, 0.1); border-color: var(--red); clip-path: polygon(0 0, 100% 0, 100% 92%, 95% 100%, 0 100%); }
+        .user .bubble { background: rgba(0, 255, 65, 0.05); border-color: var(--green); color: var(--green); clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 12%); }
 
-        .path-card { border: 1px solid var(--red); background: rgba(40,0,0,0.9); padding: 12px; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .path-card { border: 1px solid var(--red); background: rgba(40, 0, 0, 0.9); padding: 12px; margin-top: 10px; cursor: pointer; transition: 0.2s; }
         .path-card:hover { background: var(--red); color: #000; }
         
-        .quest-card { border: 2px solid var(--red); background: rgba(20,0,0,0.95); padding: 20px; box-shadow: 0 0 20px var(--red); margin-top: 10px; }
+        .quest-card { border: 2px solid var(--red); background: rgba(20, 0, 0, 0.95); padding: 20px; box-shadow: 0 0 20px var(--red); margin-top: 10px; }
         .btn-done { margin-top: 15px; border: 1px solid var(--green); color: var(--green); padding: 10px; text-align: center; cursor: pointer; font-weight: bold; }
         .btn-done:hover { background: var(--green); color: #000; }
 
@@ -62,6 +62,178 @@
             <div><span class="tag">EXE</span> <span id="exe-txt">0</span></div>
             <div><span class="tag">OBJ</span> <span id="goal-txt" style="color:#fff">WAITING...</span></div>
         </div>
+
+        <div style="padding:10px; text-align:center; border-top:1px solid #300; margin-top:10px;">
+          <button onclick="startMode('lite')" style="margin-right:10px; border:1px solid var(--green); color:var(--green); font-size:11px;">
+            👉 新手模式（簡單）
+          </button>
+          <button onclick="startMode('pro')" style="border:1px solid var(--red); color:var(--red); font-size:11px;">
+            ⚡ 進階模式（完整系統）
+          </button>
+        </div>
+    </header>
+
+    <div id="chat-flow">
+        <div class="msg-wrapper ai">
+            <div class="bubble">核心已啟動。這不是聊天 AI，這是決策引擎。<br><br>👉 **請直接輸入您現在最想解決的一件事。**</div>
+        </div>
+    </div>
+
+    <div id="typing" style="display:none;" class="typing">>> ANALYZING BEHAVIOR...</div>
+
+    <div class="controls">
+        <div class="input-row">
+            <input type="text" id="ui-input" placeholder="輸入變數..." autocomplete="off">
+            <button id="send-btn" onclick="send()">執行</button>
+        </div>
+    </div>
+
+    <script>
+        // 🎯 核心端點
+        const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec"; 
+        
+        let loading = false, context = [];
+        let userId = localStorage.getItem("cogitator_id") || ("CORE_" + Date.now());
+        localStorage.setItem("cogitator_id", userId);
+
+        const params = new URLSearchParams(window.location.search);
+        const progress = params.get("progress");
+        const savedProgress = localStorage.getItem("progress");
+
+        const chat = document.getElementById('chat-flow'), input = document.getElementById('ui-input'), btn = document.getElementById('send-btn');
+        const goalTxt = document.getElementById('goal-txt'), lvlTxt = document.getElementById('lvl-txt'), exeTxt = document.getElementById('exe-txt'), typingUI = document.getElementById('typing');
+
+        // 🧩 接續邏輯與優先權修正
+        window.addEventListener('load', () => {
+            if (progress && !sessionStorage.getItem("progress_loaded")) {
+                // 🧩 任務 1 & 3：URL 進度優先 + 強化系統感
+                sessionStorage.setItem("progress_loaded", "1");
+                localStorage.setItem("progress", progress);
+
+                append("ai", `已接續進度：${progress}`);
+                append("ai", `任務同步完成（${progress}）`);
+                append("ai", "已切換至完整系統（自動記錄模式）");
+
+                fetch(ENDPOINT, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        message: `進度 ${progress}`,
+                        userId: userId,
+                        context: context
+                    })
+                }).then(res => res.json()).then(data => handleResponse(data));
+
+            } else if (!progress && savedProgress) {
+                // 🧩 任務 1：當沒有 URL 參數時，才使用本地儲存
+                append("ai", `恢復上次進度：${savedProgress}`);
+                
+                fetch(ENDPOINT, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        message: `進度 ${savedProgress}`,
+                        userId: userId,
+                        context: context
+                    })
+                }).then(res => res.json()).then(data => handleResponse(data));
+            }
+        });
+
+        // 🧩 任務 2：強化新手模式引導
+        function startMode(mode) {
+            if (mode === "lite") {
+                append("ai", "正在進入簡易模式（引導版本）");
+                append("ai", "新分頁已開啟，請照指示完成第一步");
+
+                window.open(
+                    "https://chatgpt.com/g/g-69e5d7e9f2688191bfe2d1c4ea800bbd-cogitator-engine",
+                    "_blank"
+                );
+            } else {
+                append("ai", "已進入進階模式（完整系統）");
+                append("ai", "提示：完整系統會自動記錄你的每一步");
+            }
+        }
+
+        function purge() { localStorage.removeItem("cogitator_id"); localStorage.removeItem("progress"); sessionStorage.removeItem("progress_loaded"); location.reload(); }
+        function scroll() { chat.scrollTop = chat.scrollHeight; }
+
+        function showAchievement(text) {
+            const div = document.createElement("div"); div.className = "achievement"; div.innerText = "✔ " + text;
+            chat.appendChild(div); scroll();
+            setTimeout(() => div.remove(), 2500);
+        }
+
+        function append(role, content, type = "text") {
+            const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${role}`;
+            const bubble = document.createElement('div'); bubble.className = "bubble";
+
+            if (type === "text") {
+                bubble.textContent = content;
+            } else if (type === "paths") {
+                let html = `<div>${content.lead}</div><div style="margin:10px 0;">`;
+                content.paths.forEach(p => {
+                    html += `<div class="path-card" onclick="choosePath('${p.id}')">▪ ${p.title}<br><small>${p.desc}</small></div>`;
+                });
+                html += `</div><div>${content.prompt}</div>`;
+                bubble.innerHTML = html;
+            } else if (type === "task") {
+                bubble.innerHTML = `
+                    <div class="quest-card">
+                        <div style="font-weight:bold; border-bottom:1px solid var(--red); padding-bottom:5px; margin-bottom:12px; color:var(--red);">+++ ACTIVE TASK +++</div>
+                        <div style="color:#fff; padding:15px 0; font-size:16px; border-left:4px solid var(--red); padding-left:15px;">${content.task}</div>
+                        <div class="btn-done" onclick="taskDone()">✔ 執行完畢</div>
+                    </div>
+                `;
+            }
+
+            wrap.appendChild(bubble); chat.appendChild(wrap); scroll();
+        }
+
+        async function choosePath(id) { input.value = "我選擇 " + id; send(); }
+
+        async function taskDone() {
+            showAchievement("ACTION SYNCED // LEVEL UP");
+            input.value = "任務完成";
+            send();
+        }
+
+        function handleResponse(data) {
+            if (data.identity && data.identity.mainGoal) goalTxt.innerText = data.identity.mainGoal;
+            if (data.profile) {
+                lvlTxt.innerText = data.profile.level;
+                exeTxt.innerText = data.profile.execution;
+            }
+            if (data.reply) append("ai", data.reply);
+            if (data.type === "paths") append("ai", data, "paths");
+            if (data.type === "task") append("ai", data, "task");
+            context.push({ role: "ai", content: data.reply || data.task || "ACK" });
+        }
+
+        async function send() {
+            if (loading) return;
+            const val = input.value.trim(); if (!val) return;
+
+            loading = true; btn.disabled = true;
+            append("user", val); context.push({ role: "user", content: val });
+            input.value = ""; typingUI.style.display = "block"; scroll();
+
+            try {
+                const res = await fetch(ENDPOINT, { method: "POST", body: JSON.stringify({ message: val, context: context, userId: userId }) });
+                const data = await res.json();
+                typingUI.style.display = "none";
+                handleResponse(data);
+            } catch (err) {
+                typingUI.style.display = "none";
+                append("ai", "連線斷開。請檢查網址或權限設定。");
+            } finally {
+                loading = false; btn.disabled = false; input.focus();
+            }
+        }
+
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') send(); });
+    </script>
+</body>
+</html>        </div>
 
         <div style="padding:10px; text-align:center; border-top:1px solid #300; margin-top:10px;">
           <button onclick="startMode('lite')" style="margin-right:10px; border:1px solid var(--green); color:var(--green); font-size:11px;">
