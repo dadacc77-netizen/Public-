@@ -3,65 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COGITATOR // STABLE PATCH V6.0</title>
+    <title>COGITATOR // PRODUCT_CORE_V7.5</title>
     <style>
-        /* --- 視覺風格：DOOM x Warhammer 40K --- */
-        :root {
-            --bg: #0a0a0a;
-            --red: #ff2e2e;
-            --green: #00ff41;
-            --font: "Courier New", Courier, monospace;
-        }
-
-        @keyframes flicker {
-            0% { opacity: 0.9; } 5% { opacity: 0.7; } 100% { opacity: 1; }
-        }
-
+        :root { --bg: #0a0a0a; --red: #ff2e2e; --green: #00ff41; --font: "Courier New", Courier, monospace; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        
         body {
-            background: var(--bg);
-            background-image: radial-gradient(circle, #1a0000 0%, #0a0a0a 100%);
-            color: var(--red);
-            font-family: var(--font);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            letter-spacing: 1px;
+            background: var(--bg); background-image: radial-gradient(circle, #1a0000 0%, #0a0a0a 100%);
+            color: var(--red); font-family: var(--font); height: 100vh; display: flex; flex-direction: column; overflow: hidden; letter-spacing: 1px;
         }
-
-        /* 掃描線特效 */
         body::after {
             content: ""; position: absolute; top:0; left:0; width:100%; height:100%;
-            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.1) 50%), 
-                        linear-gradient(90deg, rgba(255,0,0,0.02), rgba(0,255,0,0.01), rgba(0,0,255,0.02));
+            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.1) 50%), linear-gradient(90deg, rgba(255,0,0,0.02), rgba(0,255,0,0.01), rgba(0,0,255,0.02));
             background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 1000;
         }
-
-        header {
-            padding: 15px 20px;
-            border-bottom: 2px solid var(--red);
-            background: rgba(20, 0, 0, 0.9);
-            box-shadow: 0 0 15px var(--red);
-            z-index: 10;
-        }
-
+        header { padding: 15px 20px; border-bottom: 2px solid var(--red); background: rgba(20,0,0,0.9); box-shadow: 0 0 15px var(--red); z-index: 10; }
         .header-top { display: flex; justify-content: space-between; align-items: center; }
-        .brand { font-weight: bold; text-shadow: 0 0 8px var(--red); animation: flicker 2s infinite; }
-        
-        .status-bar { 
-            border: 1px solid var(--green); background: rgba(0,255,65,0.05); 
-            padding: 5px 12px; color: var(--green); font-size: 11px; margin-top: 10px; 
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .brand { font-weight: bold; text-shadow: 0 0 8px var(--red); }
+        .status-bar { border: 1px solid var(--green); background: rgba(0,255,65,0.05); padding: 5px 12px; color: var(--green); font-size: 11px; margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .lvl-tag { background: var(--green); color: #000; padding: 0 5px; font-weight: 900; }
+        .progress-track { background: #222; height: 6px; width: 80px; border: 1px solid var(--red); margin-left: 10px; }
+        #progress-bar { background: var(--red); height: 100%; width: 0%; transition: width 0.8s; box-shadow: 0 0 10px var(--red); }
 
         #chat-flow { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
-        
         .msg-wrapper { display: flex; width: 100%; animation: fadeIn 0.3s forwards; }
         .msg-wrapper.user { justify-content: flex-end; }
+        .bubble { max-width: 85%; padding: 15px; border: 1px solid transparent; font-size: 14px; line-height: 1.4; }
+        .ai .bubble { background: rgba(255,46,46,0.1); border-color: var(--red); clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%); }
+        .user .bubble { background: rgba(0,255,65,0.05); border-color: var(--green); color: var(--green); clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 10%); }
+
+        /* Path Card */
+        .path-card { border: 1px solid var(--red); background: rgba(40,0,0,0.9); padding: 12px; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .path-card:hover { background: var(--red); color: #000; }
         
+        /* Quest Card */
+        .quest-card { border: 2px solid var(--red); background: rgba(20,0,0,0.95); padding: 20px; box-shadow: 0 0 15px var(--red); margin-top: 10px; }
+        .complete-btn { margin-top: 15px; border: 1px solid var(--green); color: var(--green); padding: 10px; text-align: center; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .complete-btn:hover { background: var(--green); color: #000; }
+
+        /* Achievement Animation */
+        .achievement { background: var(--green); color: #000; padding: 12px; margin: 10px 0; text-align: center; font-weight: 900; animation: fadeUp 0.6s ease-out; box-shadow: 0 0 20px var(--green); }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .controls { padding: 20px; background: #000; border-top: 2px solid var(--red); }
+        .input-row { display: flex; gap: 10px; }
+        input { flex: 1; background: #111; border: 1px solid #333; padding: 12px; color: var(--green); font-family: var(--font); outline: none; }
+        button { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 0 20px; font-weight: bold; cursor: pointer; }
+        button:disabled { opacity: 0.3; }
+        .typing { font-size: 11px; color: var(--green); animation: flicker 0.5s infinite; padding: 10px 0; }
+        @keyframes flicker { 0% { opacity: 0.5; } 100% { opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-top">
+            <div class="brand">COGITATOR // CORE_V7.5</div>
+            <div style="font-size: 10px; cursor: pointer; color: #666;" onclick="purge()">[PURGE_MEMORY]</div>
+        </div>
+        <div class="status-bar">
+            <div><span class="lvl-tag">LVL.<span id="lvl-txt">0</span></span> OBJ: <span id="goal-txt" style="color:#fff">AWAITING...</span></div>
+            <div style="display:flex; align-items:center;">SYNC: <div class="progress-track"><div id="progress-bar"></div></div></div>
+        </div>
+    </header>
+
+    <div id="chat-flow"><div class="msg-wrapper ai"><div class="bubble">CORE READY. 請輸入您的核心目標。</div></div></div>
+
+    <div class="controls">
+        <div class="input-row">
+            <input type="text" id="ui-input" placeholder="ENTER VARIABLES..." autocomplete="off">
+            <button id="send-btn" onclick="send()">EXECUTE</button>
+        </div>
+    </div>
+
+    <script>
+        // 🎯 唯一 ENDPOINT
+        const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec";
+        
+        let loading = false, context = [];
+        let userId = localStorage.getItem("cogitator_id") || ("CORE_" + Date.now());
+        localStorage.setItem("cogitator_id", userId);
+
+        const chat = document.getElementById('chat-flow'), input = document.getElementById('ui-input'), btn = document.getElementById('send-btn');
+        const goalTxt = document.getElementById('goal-txt'), lvlTxt = document.getElementById('lvl-txt'), progressUI = document.getElementById('progress-bar');
+
+        function purge() { localStorage.removeItem("cogitator_id"); location.reload(); }
+        function scroll() { chat.scrollTop = chat.scrollHeight; }
+
+        function showAchievement(text) {
+            const div = document.createElement("div"); div.className = "achievement"; div.innerText = "✔ " + text;
+            chat.appendChild(div); scroll();
+            setTimeout(() => div.remove(), 2500);
+        }
+
+        function append(role, content, type = "text") {
+            const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${role}`;
+            const bubble = document.createElement('div'); bubble.className = "bubble";
+
+            if (type === "text") {
+                bubble.textContent = content;
+            } else if (type === "paths") {
+                let html = `<div>${content.lead}</div><div style="margin:10px 0;">`;
+                content.paths.forEach(p => {
+                    html += `<div class="path-card" onclick="choosePath('${p.id}')">▪ ${p.title}<br><small>${p.desc}</small></div>`;
+                });
+                html += `</div><div>${content.prompt}</div>`;
+                bubble.innerHTML = html;
+            } else if (type === "task") {
+                bubble.innerHTML = `
+                    <div class="quest-card">
+                        <div style="font-weight:bold; border-bottom:1px solid var(--red); padding-bottom:8px; margin-bottom:12px; color:var(--red);">+++ ACTIVE QUEST +++</div>
+                        <div style="color:var(--green); font-size:11px;">TARGET: ${content.goal}</div>
+                        <div style="color:#fff; padding:15px 0; font-size:15px; border-left:3px solid var(--red); padding-left:15px; margin:10px 0;">${content.task}</div>
+                        <div class="complete-btn" onclick="taskDone()">✔ 任務完成</div>
+                    </div>
+                `;
+            }
+
+            wrap.appendChild(bubble); chat.appendChild(wrap); scroll();
+        }
+
+        // 🧠 9. 選路邏輯修正
+        async function choosePath(id) {
+            const msg = "我選擇 " + id;
+            context.push({ role: "user", content: msg });
+            input.value = msg;
+            send();
+        }
+
+        async function taskDone() {
+            showAchievement("任務完成：進度同步中");
+            input.value = "我做好了，請推下一步";
+            send();
+        }
+
+        async function send() {
+            if (loading) return;
+            const val = input.value.trim();
+            if (!val) return;
+
+            loading = true; btn.disabled = true;
+            append("user", val);
+            context.push({ role: "user", content: val });
+            input.value = "";
+
+            const typing = document.createElement("div"); typing.className = "typing"; typing.innerText = ">> CORE PROCESSING...";
+            chat.appendChild(typing); scroll();
+
+            try {
+                // ✅ 穩定版 Fetch
+                const res = await fetch(ENDPOINT, { method: "POST", body: JSON.stringify({ message: val, context: context, userId: userId }) });
+                const data = await res.json();
+                chat.removeChild(typing);
+
+                // 更新 UI
+                if (data.identity && data.identity.mainGoal) goalTxt.innerText = data.identity.mainGoal;
+                if (data.progress) {
+                    progressUI.style.width = data.progress.percent + "%";
+                    lvlTxt.innerText = Math.floor(data.progress.percent / 20);
+                }
+
+                // 渲染回應
+                if (data.reply) append("ai", data.reply);
+                if (data.type === "paths") append("ai", data, "paths");
+                if (data.type === "task") append("ai", data, "task");
+
+                context.push({ role: "ai", content: data.reply || data.task || "ACK" });
+            } catch (err) {
+                if (chat.contains(typing)) chat.removeChild(typing);
+                append("ai", "連線失敗。");
+            } finally {
+                loading = false; btn.disabled = false; input.focus();
+            }
+        }
+
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') send(); });
+    </script>
+</body>
+</html>        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         .bubble { max-width: 85%; padding: 15px; border: 1px solid transparent; font-size: 14px; line-height: 1.4; }
         .ai .bubble { background: rgba(255,46,46,0.1); border-color: var(--red); clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%); }
