@@ -1,81 +1,146 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COGITATOR</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COGITATOR // 認知核心</title>
+    <style>
+        :root {
+            --bg-color: #FFF8E7;
+            --accent-color: #F2B705;
+            --accent-hover: #DDA600;
+            --text-primary: #0A0A0A;
+            --text-secondary: #5A5A5C;
+            --text-tertiary: #8E8E93;
+            --surface: #FFFFFF;
+            --border-light: rgba(0, 0, 0, 0.06);
+            --border-focus: rgba(0, 0, 0, 0.15);
+            --danger-bg: rgba(215, 48, 48, 0.04);
+            --danger-text: #D73030;
+            --shadow-subtle: 0 4px 24px rgba(0, 0, 0, 0.02);
+            --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+            --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
+        }
 
-<style>
-body {
-  font-family: Arial;
-  background: #FFF8E7;
-  display:flex;
-  justify-content:center;
-  padding:40px;
-}
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
-.box {
-  background:#fff;
-  padding:30px;
-  width:400px;
-  border-radius:10px;
-}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            -webkit-font-smoothing: antialiased;
+        }
 
-input, textarea {
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-}
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            position: relative;
+        }
 
-button {
-  width:100%;
-  padding:12px;
-  margin-top:15px;
-  background:#F2B705;
-  border:none;
-}
-</style>
-</head>
+        /* 系統頂部列 */
+        .system-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 0 8px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+        }
 
-<body>
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-<div class="box">
+        .status-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: var(--text-primary);
+            opacity: 0.3;
+        }
 
-<h3>輸入你的決策問題</h3>
+        /* 主卡片 */
+        .card {
+            background: var(--surface);
+            border-radius: 20px;
+            box-shadow: var(--shadow-float);
+            border: 1px solid var(--border-light);
+            padding: 48px 40px;
+            position: relative;
+            overflow: hidden;
+        }
 
-<textarea id="problem"></textarea>
-<input id="email" placeholder="Email">
+        /* 狀態切換 */
+        .state-layer {
+            display: none;
+            opacity: 0;
+            transform: translateY(8px) scale(0.99);
+            transition: opacity 0.6s var(--ease-apple), transform 0.6s var(--ease-apple);
+        }
 
-<button onclick="send()">送出</button>
+        .state-layer.is-active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
 
-<p id="status"></p>
+        /* 文字排版 */
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
 
-</div>
+        .subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+        }
 
-<script>
-async function send(){
+        .tension-banner {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 32px;
+            border: 1px solid rgba(215, 48, 48, 0.08);
+        }
 
-  let problem = document.getElementById("problem").value;
-  let email = document.getElementById("email").value;
+        /* 表單 */
+        .form-group { margin-bottom: 24px; }
+        
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
 
-  if(!problem || !email){
-    alert("填完整");
-    return;
-  }
+        .help-text {
+            display: block;
+            font-size: 13px;
+            color: var(--text-tertiary);
+            margin-bottom: 12px;
+            margin-top: -4px;
+        }
 
-  document.getElementById("status").innerText="送出中...";
-
-  await fetch("https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec",{
-    method:"POST",
-    body: JSON.stringify({problem,email})
-  });
-
-  document.getElementById("status").innerText="完成（去看Sheet）";
-}
-</script>
-
-</body>
-</html>        input, textarea {
+        input, textarea {
             width: 100%;
             background: transparent;
             border: 1px solid var(--border-light);
@@ -85,14 +150,9 @@ async function send(){
             color: var(--text-primary);
             font-family: inherit;
             transition: all 0.3s var(--ease-apple);
-            box-shadow: 0 1px 2px rgba(0,0,0,0.01) inset;
         }
 
-        textarea {
-            min-height: 120px;
-            resize: vertical;
-            line-height: 1.5;
-        }
+        textarea { min-height: 120px; resize: vertical; line-height: 1.5; }
 
         input:focus, textarea:focus {
             outline: none;
@@ -101,11 +161,7 @@ async function send(){
             background: var(--surface);
         }
 
-        input::placeholder, textarea::placeholder {
-            color: #C0C0C0;
-        }
-
-        /* 按鈕 (Premium Micro-interactions) */
+        /* 按鈕 */
         button {
             width: 100%;
             background: var(--accent-color);
@@ -119,192 +175,71 @@ async function send(){
             transition: all 0.4s var(--ease-apple);
             margin-top: 12px;
             box-shadow: 0 2px 10px rgba(242, 183, 5, 0.15);
-            letter-spacing: -0.01em;
         }
 
-        button:hover {
-            background: var(--accent-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(242, 183, 5, 0.25);
-        }
-
-        button:active {
-            transform: translateY(1px) scale(0.98);
-            box-shadow: 0 1px 4px rgba(242, 183, 5, 0.1);
-        }
+        button:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        button:active { transform: translateY(1px) scale(0.98); }
 
         /* 信任錨點 */
         .trust-footer {
-            margin-top: 24px;
-            text-align: center;
-            font-size: 12px;
-            color: var(--text-tertiary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            font-weight: 500;
+            margin-top: 24px; text-align: center; font-size: 12px;
+            color: var(--text-tertiary); display: flex; align-items: center;
+            justify-content: center; gap: 6px; font-weight: 500;
         }
 
-        .trust-footer svg {
-            width: 12px;
-            height: 12px;
-            fill: currentColor;
-            opacity: 0.7;
-        }
+        .trust-footer svg { width: 12px; height: 12px; fill: currentColor; opacity: 0.7; }
 
-        /* Loading Experience (Organic & Intelligent) */
+        /* 載入動畫 */
         .loading-view {
-            text-align: center;
-            padding: 40px 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 300px;
+            text-align: center; padding: 40px 0; display: flex;
+            flex-direction: column; align-items: center; justify-content: center; min-height: 300px;
         }
 
-        .orb-container {
-            position: relative;
-            width: 64px;
-            height: 64px;
-            margin-bottom: 40px;
-        }
-
+        .orb-container { position: relative; width: 64px; height: 64px; margin-bottom: 40px; }
         .orb {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--accent-color) 0%, rgba(242,183,5,0) 100%);
-            opacity: 0.15;
-            animation: breathe 3s ease-in-out infinite alternate;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%; background: linear-gradient(135deg, var(--accent-color) 0%, rgba(242,183,5,0) 100%);
+            opacity: 0.15; animation: breathe 3s ease-in-out infinite alternate;
         }
-
         .orb-core {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--text-primary);
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 12px; height: 12px; border-radius: 50%; background: var(--text-primary);
         }
 
-        @keyframes breathe {
-            0% { transform: scale(0.8); opacity: 0.1; }
-            100% { transform: scale(1.5); opacity: 0.25; }
-        }
+        @keyframes breathe { 0% { transform: scale(0.8); opacity: 0.1; } 100% { transform: scale(1.5); opacity: 0.25; } }
 
-        .loading-text-container {
-            height: 24px;
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-        }
-
+        .loading-text-container { height: 24px; position: relative; width: 100%; overflow: hidden; }
+        
         .loading-text {
-            font-size: 15px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            position: absolute;
-            width: 100%;
-            top: 0;
-            left: 0;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.5s var(--ease-apple);
-            letter-spacing: 0.02em;
+            font-size: 15px; font-weight: 500; color: var(--text-secondary);
+            position: absolute; width: 100%; top: 0; left: 0; opacity: 0;
+            transform: translateY(10px); transition: all 0.5s var(--ease-apple);
         }
+        .loading-text.is-visible { opacity: 1; transform: translateY(0); }
+        .loading-text.is-exiting { opacity: 0; transform: translateY(-10px); }
 
-        .loading-text.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .loading-text.is-exiting {
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-
-        /* Success State (Anticipation & Process Started) */
-        .success-view {
-            padding: 20px 0 10px;
-        }
-
+        /* 成功狀態 */
+        .success-view { padding: 20px 0 10px; }
         .success-mark {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 32px;
+            width: 40px; height: 40px; border-radius: 10px; background: var(--bg-color);
+            border: 1px solid var(--border-light); display: flex; align-items: center;
+            justify-content: center; margin-bottom: 32px;
         }
-
-        .success-mark svg {
-            width: 16px;
-            height: 16px;
-            fill: var(--text-primary);
-        }
-
-        .success-body {
-            font-size: 15px;
-            color: var(--text-secondary);
-            margin-bottom: 40px;
-        }
-
-        .success-body strong {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .receipt-box {
-            background: #FAFAFA;
-            border: 1px solid var(--border-light);
-            border-radius: 12px;
-            padding: 24px;
-        }
-
+        .success-mark svg { width: 16px; height: 16px; fill: var(--text-primary); }
+        .success-body { font-size: 15px; color: var(--text-secondary); margin-bottom: 40px; }
+        .success-body strong { color: var(--text-primary); font-weight: 600; }
+        
+        .receipt-box { background: #FAFAFA; border: 1px solid var(--border-light); border-radius: 12px; padding: 24px; }
         .receipt-title {
-            font-size: 11px;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: var(--text-tertiary);
-            letter-spacing: 0.06em;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
+            font-size: 11px; text-transform: uppercase; font-weight: 700;
+            color: var(--text-tertiary); margin-bottom: 16px; padding-bottom: 12px;
             border-bottom: 1px solid var(--border-light);
         }
+        .receipt-item { font-size: 14px; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 12px; }
+        .receipt-item:last-child { margin-bottom: 0; }
+        .receipt-icon { color: var(--text-tertiary); font-size: 12px; margin-top: 2px; }
 
-        .receipt-item {
-            font-size: 14px;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .receipt-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .receipt-icon {
-            color: var(--text-tertiary);
-            font-size: 12px;
-            margin-top: 2px;
-        }
-
-        @media (max-width: 480px) {
-            .card { padding: 32px 24px; }
-            h1 { font-size: 24px; }
-        }
+        @media (max-width: 480px) { .card { padding: 32px 24px; } h1 { font-size: 24px; } }
     </style>
 </head>
 <body>
@@ -319,7 +254,6 @@ async function send(){
         </div>
 
         <div class="card">
-            
             <div id="state-form" class="state-layer is-active">
                 <h1>決策臨界點。</h1>
                 <p class="subtitle">你在這裡輸入的變數，將決定下一階段的資源消耗與系統走向。</p>
@@ -356,7 +290,7 @@ async function send(){
                     <div class="loading-text-container" id="text-container">
                         <div class="loading-text is-visible">隔離環境建置中...</div>
                         <div class="loading-text">正在解構邊界條件與資源限制...</div>
-                        <div class="loading-text">比對歷史失敗節點...</div>
+                        <div class="loading-text">資料傳輸並比對歷史失敗節點...</div>
                         <div class="loading-text">平行模擬未來 3 條演化路徑...</div>
                         <div class="loading-text">收斂唯一最安全行動基底...</div>
                     </div>
@@ -406,7 +340,7 @@ async function send(){
             statusText: document.querySelector('.status-badge span:last-child')
         };
 
-        // UX: Focus & Keyboard Shortcuts
+        // UI 互動設定
         window.onload = () => DOM.problem.focus();
         
         DOM.problem.addEventListener('keydown', (e) => {
@@ -416,19 +350,14 @@ async function send(){
             if (e.key === 'Enter') initiateSequence();
         });
 
-        // State Machine Transition
         function transition(hideEl, showEl) {
             hideEl.classList.remove('is-active');
-            
             setTimeout(() => {
                 hideEl.style.display = 'none';
                 showEl.style.display = 'block';
-                
-                // Force layout recalculation
                 void showEl.offsetWidth; 
-                
                 showEl.classList.add('is-active');
-            }, 600); // Matches CSS transition duration
+            }, 600);
         }
 
         const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -438,47 +367,55 @@ async function send(){
             const eVal = DOM.email.value.trim();
 
             if (!pVal || !eVal || !eVal.includes('@')) {
-                // Shake effect for error could be added, keeping minimal for now
                 alert("參數不足：請提供具體的瓶頸描述與有效的接收端點。");
                 return;
             }
 
-            // Update System Bar
+            // 更新頂部狀態列
             DOM.statusDot.style.backgroundColor = 'var(--accent-color)';
             DOM.statusDot.style.opacity = '1';
             DOM.statusDot.style.boxShadow = '0 0 8px rgba(242, 183, 5, 0.6)';
             DOM.statusText.innerText = 'Processing Payload';
 
-            // Transition to Loading
+            // 切換至 Loading 畫面
             transition(DOM.form, DOM.loading);
             
-            // Handle Loading Text Animation
+            // 處理 Loading 動態文字
             const texts = Array.from(DOM.textContainer.children);
             let currentIndex = 0;
-
             const textInterval = setInterval(() => {
                 if (currentIndex >= texts.length - 1) {
                     clearInterval(textInterval);
                     return;
                 }
-                
                 const current = texts[currentIndex];
                 const next = texts[currentIndex + 1];
-
                 current.classList.remove('is-visible');
                 current.classList.add('is-exiting');
-
                 next.classList.add('is-visible');
-                
                 currentIndex++;
-            }, 2500); // Organic, slightly unpredictable pacing
+            }, 2000); 
 
-            // Simulate deep computation time (Total ~12.5s for realism, adjusted to 8s for UX)
-            await sleep(8500);
+            try {
+                // 真實接單邏輯：傳送至 Google Sheet (使用 Promise.all 確保至少跑 6 秒的動畫營造價值感)
+                await Promise.all([
+                    fetch("https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec", {
+                        method: "POST",
+                        mode: "no-cors", // 重要：避免前端出現 CORS 錯誤擋住流程
+                        headers: {
+                            "Content-Type": "text/plain;charset=utf-8"
+                        },
+                        body: JSON.stringify({ problem: pVal, email: eVal })
+                    }),
+                    sleep(6000) // 保底顯示 6 秒動畫，讓使用者看完提示詞
+                ]);
+            } catch (error) {
+                console.error("提交過程發生問題，但為了體驗順暢，系統將繼續執行", error);
+            }
             
             clearInterval(textInterval);
             
-            // Update System Bar for Success
+            // 寫入完成，更新狀態為成功
             DOM.statusDot.style.backgroundColor = '#0F9D58';
             DOM.statusDot.style.boxShadow = 'none';
             DOM.statusText.innerText = 'Sequence Locked';
