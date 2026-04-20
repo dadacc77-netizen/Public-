@@ -340,7 +340,6 @@
             statusText: document.querySelector('.status-badge span:last-child')
         };
 
-        // UI 互動設定
         window.onload = () => DOM.problem.focus();
         
         DOM.problem.addEventListener('keydown', (e) => {
@@ -397,20 +396,19 @@
             }, 2000); 
 
             try {
-                // 真實接單邏輯：傳送至 Google Sheet (使用 Promise.all 確保至少跑 6 秒的動畫營造價值感)
+                // 真實接單邏輯：傳送至 Google Sheet (移除 no-cors 與 headers)
                 await Promise.all([
                     fetch("https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec", {
                         method: "POST",
-                        mode: "no-cors", // 重要：避免前端出現 CORS 錯誤擋住流程
-                        headers: {
-                            "Content-Type": "text/plain;charset=utf-8"
-                        },
-                        body: JSON.stringify({ problem: pVal, email: eVal })
+                        body: JSON.stringify({
+                            problem: pVal,
+                            email: eVal
+                        })
                     }),
                     sleep(6000) // 保底顯示 6 秒動畫，讓使用者看完提示詞
                 ]);
             } catch (error) {
-                console.error("提交過程發生問題，但為了體驗順暢，系統將繼續執行", error);
+                console.error("提交過程發生問題", error);
             }
             
             clearInterval(textInterval);
