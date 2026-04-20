@@ -1,125 +1,61 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COGITATOR // 決策推進核心</title>
-    <style>
-        :root { --bg: #0a0a0a; --red: #ff2e2e; --green: #00ff41; --font: "Courier New", Courier, monospace; }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background: var(--bg); background-image: radial-gradient(circle, #1a0000 0%, #0a0a0a 100%);
-            color: var(--red); font-family: var(--font); height: 100vh; display: flex; flex-direction: column; overflow: hidden; letter-spacing: 1px;
-        }
-        body::after {
-            content: ""; position: absolute; top:0; left:0; width:100%; height:100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-            background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 1000;
-        }
-        header { padding: 15px 20px; border-bottom: 2px solid var(--red); background: rgba(20, 0, 0, 0.9); box-shadow: 0 0 15px var(--red); z-index: 10; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; }
-        .brand { font-weight: bold; text-shadow: 0 0 8px var(--red); }
-        .status-bar { border: 1px solid var(--green); background: rgba(0, 255, 65, 0.05); padding: 8px 12px; color: var(--green); font-size: 11px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 15px; }
-        .tag { font-weight: 900; background: var(--green); color: #000; padding: 0 5px; margin-right: 5px; }
-        
-        #chat-flow { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
-        .msg-wrapper { display: flex; width: 100%; animation: fadeIn 0.3s forwards; }
-        .msg-wrapper.user { justify-content: flex-end; }
-        .bubble { max-width: 85%; padding: 15px; border: 1px solid transparent; font-size: 14px; line-height: 1.5; }
-        .ai .bubble { background: rgba(255, 46, 46, 0.1); border-color: var(--red); clip-path: polygon(0 0, 100% 0, 100% 92%, 95% 100%, 0 100%); }
-        .user .bubble { background: rgba(0, 255, 65, 0.05); border-color: var(--green); color: var(--green); clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 12%); }
+# FINAL POLISHED INIT (PRODUCT VERSION)
 
-        .path-card { border: 1px solid var(--red); background: rgba(40, 0, 0, 0.9); padding: 12px; margin-top: 10px; cursor: pointer; transition: 0.2s; }
-        .path-card:hover { background: var(--red); color: #000; }
-        
-        .quest-card { border: 2px solid var(--red); background: rgba(20, 0, 0, 0.95); padding: 20px; box-shadow: 0 0 20px var(--red); margin-top: 10px; }
-        .btn-done { margin-top: 15px; border: 1px solid var(--green); color: var(--green); padding: 10px; text-align: center; cursor: pointer; font-weight: bold; }
-        .btn-done:hover { background: var(--green); color: #000; }
+window.addEventListener('load', () => {
 
-        .achievement { background: var(--green); color: #000; padding: 12px; margin: 10px 0; text-align: center; font-weight: 900; animation: fadeUp 0.6s ease-out; box-shadow: 0 0 20px var(--green); }
-        
-        .controls { padding: 20px; background: #000; border-top: 2px solid var(--red); }
-        .input-row { display: flex; gap: 10px; }
-        input { flex: 1; background: #111; border: 1px solid #333; padding: 12px; color: var(--green); font-family: var(--font); outline: none; }
-        button { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 0 20px; font-weight: bold; cursor: pointer; font-family: var(--font); }
-        button:disabled { opacity: 0.3; }
-        
-        .typing { font-size: 11px; color: var(--green); animation: flicker 0.5s infinite; padding: 10px 20px; }
-        @keyframes flicker { 0% { opacity: 0.5; } 100% { opacity: 1; } }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body>
+// 🔥 已啟動過
+if (sessionStorage.getItem("booted")) {
+UI_STATE = "active";
+append("ai","系統已恢復，繼續上次進度");
+return;
+}
 
-    <header>
-        <div class="header-top">
-            <div style="font-weight:bold; text-shadow:0 0 5px var(--red);">COGITATOR // CORE_V8.9</div>
-            <div style="font-size: 10px; cursor: pointer; color: #555;" onclick="purge()">[PURGE_MEMORY]</div>
-        </div>
-        <div class="status-bar">
-            <div><span class="tag">LVL</span> <span id="lvl-txt">1</span></div>
-            <div><span class="tag">EXE</span> <span id="exe-txt">0</span></div>
-            <div><span class="tag">OBJ</span> <span id="goal-txt" style="color:#fff">WAITING...</span></div>
-        </div>
+sessionStorage.setItem("booted", "1");
+UI_STATE = "init";
 
-        <div style="padding:10px; text-align:center; border-top:1px solid #300; margin-top:10px;">
-          <button onclick="startMode('lite')" style="margin-right:10px; border:1px solid var(--green); color:var(--green); font-size:11px;">
-            👉 新手模式（簡單）
-          </button>
-          <button onclick="startMode('pro')" style="border:1px solid var(--red); color:var(--red); font-size:11px;">
-            ⚡ 進階模式（完整系統）
-          </button>
-        </div>
-    </header>
+// 👉 URL 進度優先
+if (progress && !sessionStorage.getItem("progress_loaded")) {
 
-    <div id="chat-flow"></div>
+```
+sessionStorage.setItem("progress_loaded", "1");
+localStorage.setItem("progress", progress);
 
-    <div id="typing" style="display:none;" class="typing">>> ANALYZING BEHAVIOR...</div>
+append("ai", `已接續進度：${progress}`);
+append("ai", `任務同步完成`);
 
-    <div class="controls">
-        <div class="input-row">
-            <input type="text" id="ui-input" placeholder="輸入變數..." autocomplete="off">
-            <button id="send-btn" onclick="send()">執行</button>
-        </div>
-    </div>
+fetch(ENDPOINT,{
+  method:"POST",
+  body:JSON.stringify({ message:`進度 ${progress}`, userId, context })
+}).then(res=>res.json()).then(handleResponse);
 
-    <script>
-        const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec"; 
-        
-        let loading = false, context = [];
-        let userId = localStorage.getItem("cogitator_id") || ("CORE_" + Date.now());
-        localStorage.setItem("cogitator_id", userId);
+return;
+```
 
-        // 🧠 1. UI 狀態機
-        let UI_STATE = "boot"; // boot → init → active
+}
 
-        const params = new URLSearchParams(window.location.search);
-        const progress = params.get("progress");
-        const savedProgress = localStorage.getItem("progress");
+// 👉 本地恢復
+if (!progress && savedProgress) {
 
-        const chat = document.getElementById('chat-flow'), input = document.getElementById('ui-input'), btn = document.getElementById('send-btn');
-        const goalTxt = document.getElementById('goal-txt'), lvlTxt = document.getElementById('lvl-txt'), exeTxt = document.getElementById('exe-txt'), typingUI = document.getElementById('typing');
+```
+append("ai", `恢復上次進度：${savedProgress}`);
 
-        // 🧠 2. safeAppend 強化
-        function safeAppend(role, text) {
-            if (UI_STATE !== "boot") return; 
-            append(role, text);
-        }
+fetch(ENDPOINT,{
+  method:"POST",
+  body:JSON.stringify({ message:`進度 ${savedProgress}`, userId, context })
+}).then(res=>res.json()).then(handleResponse);
 
-        // 🧠 3. 初始化流程 (單一入口控制)
-        window.addEventListener('load', () => {
-            if (sessionStorage.getItem("booted")) {
-                UI_STATE = "active"; // 已啟動過，直接進入活動狀態
-                return;
-            }
-            sessionStorage.setItem("booted", "1");
-            UI_STATE = "init";
+return;
+```
 
-            // 👉 進度優先 (URL 模式)
-            if (progress && !sessionStorage.getItem("progress_loaded")) {
-                sessionStorage.setItem("progress_loaded", "1");
-                localStorage.setItem("progress", progress);
+}
+
+// 👉 新使用者
+UI_STATE = "boot";
+
+safeAppend("ai","核心已啟動。這不是聊天 AI，這是決策引擎。");
+safeAppend("ai","不用想太多");
+safeAppend("ai","直接輸入：我想賺錢 或 我不知道要做什麼");
+
+});
 
                 append("ai", `已接續進度：${progress}`);
                 append("ai", `任務同步完成（${progress}）`);
