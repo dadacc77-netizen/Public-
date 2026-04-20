@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COGITATOR 決策引擎</title>
+
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    background: #FFF8E7;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.container {
+    max-width: 600px;
+    width: 100%;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+}
+
+h1 { margin-bottom: 10px; }
+p { color: #666; }
+
+textarea {
+    width: 100%;
+    min-height: 44px;
+    max-height: 200px;
+    resize: none;
+    overflow-y: auto;
+    line-height: 1.5;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+button {
+    margin-top: 15px;
+    width: 100%;
+    padding: 12px;
+    background: #F2B705;
+    border: none;
+    cursor: pointer;
+}
+
+button:disabled {
+    background: #ccc;
+}
+
+.loading {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.result {
+    display: none;
+    margin-top: 20px;
+    padding: 20px;
+    background: #fafafa;
+    border-radius: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>COGITATOR 決策引擎</h1>
+<p>輸入您的商業難題，系統將推演最佳策略</p>
+
+<div id="form">
+<textarea id="problem" placeholder="例如：我現在只有一個人，該做產品還是先做服務？"></textarea>
+<input id="email" type="email" placeholder="輸入接收報告的 Email">
+<button id="btn" onclick="submitForm()">提交參數並啟動推演</button>
+
+<p style="font-size:12px;color:#888;">
+通常 80% 的人會在這個決策點選錯方向
+</p>
+</div>
+
+<div id="loading" class="loading">
+<p id="loadingText">分析中...</p>
+</div>
+
+<div id="result" class="result"></div>
+
+</div>
+
+<script>
+// 自動 focus
+window.onload = function() {
+    document.getElementById("problem").focus();
+};
+
+// textarea 自動高度
+const textarea = document.getElementById("problem");
+textarea.addEventListener("input", () => {
+    textarea.style.height = "auto";
+    textarea.style.height = textarea.scrollHeight + "px";
+});
+
+// Enter送出 / Shift+Enter換行
+textarea.addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        submitForm();
+    }
+});
+
+// Email Enter送出
+document.getElementById("email").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        submitForm();
+    }
+});
+
+function submitForm() {
+
+    let problem = document.getElementById("problem").value.trim();
+    let email = document.getElementById("email").value.trim();
+
+    if(problem === "" || email === "") {
+        alert("請填寫完整資訊");
+        return;
+    }
+
+    document.getElementById("form").style.display = "none";
+    document.getElementById("loading").style.display = "block";
+
+    let loadingTexts = [
+        "分析市場路徑中...",
+        "計算風險模型...",
+        "比對歷史決策..."
+    ];
+
+    let i = 0;
+    let interval = setInterval(() => {
+        document.getElementById("loadingText").innerText = loadingTexts[i % loadingTexts.length];
+        i++;
+    }, 500);
+
+    setTimeout(() => {
+
+        clearInterval(interval);
+
+        document.getElementById("loading").style.display = "none";
+
+        document.getElementById("result").style.display = "block";
+        document.getElementById("result").innerHTML = `
+👉 系統已接收您的決策參數<br><br>
+
+目前正在進行深度推演（多路徑模擬 + 風險計算）<br><br>
+
+📩 您的完整決策報告將於 24 小時內發送至您的信箱<br><br>
+
+這份報告會包含：<br>
+- 最穩的策略選擇<br>
+- 為什麼不選其他方案<br>
+- 你下一步該怎麼做<br><br>
+
+⚠️ 多數人在這一步會做錯決策<br>
+這也是這份分析的價值所在<br><br>
+
+<button onclick="location.reload()">重新輸入</button>
+        `;
+
+    }, 2000);
+}
+</script>
+
+</body>
+</html>
