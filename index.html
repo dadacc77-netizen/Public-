@@ -1,171 +1,530 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COGITATOR 決策引擎</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高階決策防護系統</title>
+    <style>
+        :root {
+            --brand-bg: #FFF8E7; 
+            --brand-accent: #F2B705; 
+            --brand-accent-hover: #E5A800;
+            --text-main: #111111;
+            --text-secondary: #4A4A4A;
+            --text-muted: #888888;
+            --border-light: #E8E8E8;
+            --white: #FFFFFF;
+            --danger: #D93025;
+            --success: #0F9D58;
+            --focus-ring: rgba(242, 183, 5, 0.4);
+        }
 
-<style>
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-    background: #FFF8E7;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    padding: 40px 20px;
-}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-.container {
-    max-width: 600px;
-    width: 100%;
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-}
+        body {
+            font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--brand-bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+        }
 
-h1 { margin-bottom: 10px; }
-p { color: #666; }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--white);
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
 
-textarea {
-    width: 100%;
-    min-height: 44px;
-    max-height: 200px;
-    resize: none;
-    overflow-y: auto;
-    line-height: 1.5;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
+        /* 信任與安全宣告列 */
+        .system-bar {
+            background-color: #FAFAFA;
+            border-bottom: 1px solid var(--border-light);
+            padding: 10px 24px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-input {
-    width: 100%;
-    padding: 12px;
-    margin-top: 10px;
-    border-radius: 8px;
-    border: 1px solid #ddd;
-}
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--success);
+        }
 
-button {
-    margin-top: 15px;
-    width: 100%;
-    padding: 12px;
-    background: #F2B705;
-    border: none;
-    cursor: pointer;
-}
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 0 2px rgba(15, 157, 88, 0.2);
+            animation: pulse-dot 2s infinite;
+        }
 
-.loading { display:none; text-align:center; margin-top:20px; }
-.result { display:none; margin-top:20px; padding:20px; background:#fafafa; border-radius:10px; }
-</style>
+        @keyframes pulse-dot {
+            0% { box-shadow: 0 0 0 0 rgba(15, 157, 88, 0.4); }
+            70% { box-shadow: 0 0 0 4px rgba(15, 157, 88, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(15, 157, 88, 0); }
+        }
+
+        .content-wrapper {
+            padding: 40px;
+        }
+
+        /* 狀態切換 */
+        .state-view {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .state-view.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 標題與心理層 */
+        .header {
+            margin-bottom: 32px;
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+        .header p {
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .risk-warning {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 12px;
+            background-color: rgba(217, 48, 37, 0.04);
+            color: var(--danger);
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            border: 1px solid rgba(217, 48, 37, 0.1);
+        }
+
+        /* 表單設計 */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .field-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .label-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: -4px;
+        }
+
+        textarea, input[type="email"] {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 15px;
+            line-height: 1.5;
+            font-family: inherit;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            outline: none;
+            background-color: #FAFAFA;
+            transition: all 0.2s ease;
+        }
+        
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+
+        textarea:focus, input[type="email"]:focus {
+            border-color: var(--brand-accent);
+            background-color: var(--white);
+            box-shadow: 0 0 0 3px var(--focus-ring);
+        }
+
+        textarea::placeholder, input[type="email"]::placeholder {
+            color: #B0B0B0;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--brand-accent);
+            color: var(--text-main);
+            border: none;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            margin-top: 8px;
+            box-shadow: 0 4px 14px rgba(242, 183, 5, 0.25);
+        }
+
+        button:hover {
+            background-color: var(--brand-accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(242, 183, 5, 0.3);
+        }
+
+        button:active {
+            transform: translateY(1px) scale(0.98);
+            box-shadow: 0 2px 8px rgba(242, 183, 5, 0.2);
+        }
+
+        /* 信任錨點 */
+        .trust-signal {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        
+        .trust-signal svg {
+            width: 12px;
+            height: 12px;
+            fill: currentColor;
+        }
+
+        /* Loading 狀態 (User-Centric Processing) */
+        .loading-container {
+            padding: 20px 0;
+        }
+
+        .loading-header {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(17, 17, 17, 0.1);
+            border-top-color: var(--text-main);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .process-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 15px;
+            color: var(--text-muted);
+            opacity: 0.4;
+            transition: opacity 0.3s, color 0.3s;
+        }
+
+        .step.active {
+            opacity: 1;
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .step.completed {
+            opacity: 1;
+            color: var(--text-secondary);
+        }
+
+        .step-icon {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step.completed .step-icon::after {
+            content: "✓";
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        /* 成功狀態 (Process Started) */
+        .success-icon {
+            width: 48px;
+            height: 48px;
+            background-color: var(--brand-bg);
+            border: 2px solid var(--brand-accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .success-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-main);
+        }
+
+        .success-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+
+        .success-body {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .success-body strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        .action-box {
+            background-color: #FAFAFA;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            padding: 20px;
+            font-size: 14px;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .action-box-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        @media (max-width: 480px) {
+            .content-wrapper { padding: 32px 24px; }
+            .header h1 { font-size: 22px; }
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="container">
+    <div class="container">
+        <div class="system-bar">
+            <span>DECISION SAFEGUARD // 防護機制</span>
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                <span>你的資料已加密連線</span>
+            </div>
+        </div>
 
-<h1>COGITATOR 決策引擎</h1>
-<p>輸入你的商業難題，系統會幫你推演「最穩的選擇」</p>
+        <div class="content-wrapper">
+            <div id="state-form" class="state-view active">
+                <div class="header">
+                    <h1>你的下一個決定，極度關鍵。</h1>
+                    <p>在資源有限的狀況下，走錯一步的代價極高。具體描述你現在的卡點，我們幫你找出最穩妥的破局路徑。</p>
+                    <div class="risk-warning">⚠️ 提示：多數人在這個階段做錯決定，是因為看不見隱形的致命變數。</div>
+                </div>
 
-<div id="form">
-<textarea id="problem" placeholder="例如：我現在只有一個人，該做產品還是先做服務？"></textarea>
+                <div class="input-group">
+                    <div class="field-wrapper">
+                        <label for="problem">你目前面臨的最關鍵難題是什麼？</label>
+                        <div class="label-desc">請誠實描述你的現況、手邊資源與最大的顧慮。</div>
+                        <textarea id="problem" placeholder="例如：目前單人作業且資金有限，產品方向應該優先做高客單服務還是輕量化軟體？"></textarea>
+                    </div>
+                    
+                    <div class="field-wrapper">
+                        <label for="email">報告接收信箱</label>
+                        <div class="label-desc">我們將把避險決策報告寄到這個信箱。</div>
+                        <input type="email" id="email" placeholder="name@yourcompany.com">
+                    </div>
+                    
+                    <button id="submitBtn" onclick="processEngine()">幫我找出最安全的做法</button>
+                </div>
 
-<input id="email" type="email" placeholder="輸入接收報告的 Email">
+                <div class="trust-signal">
+                    <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+                    我們唯一的目標，是確保你不會走錯方向。
+                </div>
+            </div>
 
-<p style="font-size:13px;color:#888;">
-這不是一般分析，而是避免你做錯決策的一步
-</p>
+            <div id="state-loading" class="state-view">
+                <div class="loading-container">
+                    <div class="loading-header">
+                        <div class="spinner"></div>
+                        <span>正在為你解析決策變數...</span>
+                    </div>
+                    
+                    <div class="process-steps">
+                        <div class="step" id="step-1">
+                            <div class="step-icon"></div>
+                            <span>正在解構你的現況與資源限制</span>
+                        </div>
+                        <div class="step" id="step-2">
+                            <div class="step-icon"></div>
+                            <span>比對過往類似情境的致命錯誤</span>
+                        </div>
+                        <div class="step" id="step-3">
+                            <div class="step-icon"></div>
+                            <span>為你模擬不同決策的潛在代價</span>
+                        </div>
+                        <div class="step" id="step-4">
+                            <div class="step-icon"></div>
+                            <span>正在收斂唯一最安全的行動方案</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-<button onclick="submitForm()">提交並開始推演</button>
-</div>
+            <div id="state-success" class="state-view">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                </div>
+                <h2 class="success-title">你的決策分析已經展開。</h2>
+                <div class="success-body">
+                    我們已經鎖定你目前的處境。為了避免你走錯方向，系統正在針對你的變數進行 <strong>深度壓力測試</strong>。<br><br>
+                    這不是一份普通的制式報告，而是針對你當前處境的防雷指南。
+                </div>
+                
+                <div class="action-box">
+                    <div class="action-box-title">你的下一步：</div>
+                    <div>1. 我們將為你排除所有高風險盲區，並找出破口。</div>
+                    <div>2. 專屬於你的 <strong>決策藍圖與執行計畫</strong>，將於 24 小時內嚴格遞送。</div>
+                    <div style="color: var(--danger); font-weight: 600; margin-top: 8px;">⚠️ 請密切留意信箱，這份報告將決定你接下來該往哪走。</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div id="loading" class="loading">
-<p id="loadingText">分析中...</p>
-</div>
+    <script>
+        const elProblem = document.getElementById('problem');
+        const elEmail = document.getElementById('email');
 
-<div id="result" class="result"></div>
+        window.onload = () => elProblem.focus();
 
-</div>
+        elProblem.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') processEngine();
+        });
+        elEmail.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') processEngine();
+        });
 
-<script>
-window.onload = () => document.getElementById("problem").focus();
+        function transitionState(hideId, showId) {
+            const hideEl = document.getElementById(hideId);
+            const showEl = document.getElementById(showId);
+            
+            hideEl.style.opacity = '0';
+            hideEl.style.transform = 'translateY(-10px)';
+            
+            setTimeout(() => {
+                hideEl.classList.remove('active');
+                showEl.classList.add('active');
+                void showEl.offsetWidth; 
+                showEl.style.opacity = '1';
+                showEl.style.transform = 'translateY(0)';
+            }, 400);
+        }
 
-const textarea = document.getElementById("problem");
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-textarea.addEventListener("input", () => {
-    textarea.style.height = "auto";
-    textarea.style.height = textarea.scrollHeight + "px";
-});
+        async function processEngine() {
+            const problemVal = elProblem.value.trim();
+            const emailVal = elEmail.value.trim();
 
-textarea.addEventListener("keydown", function(e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        submitForm();
-    }
-});
+            if (!problemVal || !emailVal || !emailVal.includes('@')) {
+                alert("為了給出正確的決策判斷，請具體描述你的難題，並提供接收報告的信箱。");
+                return;
+            }
 
-document.getElementById("email").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        submitForm();
-    }
-});
+            transitionState('state-form', 'state-loading');
+            await sleep(600); 
 
-function submitForm() {
+            // 模擬真實的非線性運算延遲，增加心理張力
+            const setStepActive = (num) => {
+                document.getElementById(`step-${num}`).classList.add('active');
+            };
+            const setStepComplete = (num) => {
+                const el = document.getElementById(`step-${num}`);
+                el.classList.remove('active');
+                el.classList.add('completed');
+                el.querySelector('.step-icon').innerHTML = ''; 
+            };
 
-    let problem = document.getElementById("problem").value.trim();
-    let email = document.getElementById("email").value.trim();
+            // Step 1: 解析現況
+            setStepActive(1);
+            await sleep(1000 + Math.random() * 500); 
+            setStepComplete(1);
 
-    if(problem === "" || email === "") {
-        alert("請填寫完整資訊");
-        return;
-    }
+            // Step 2: 比對風險
+            setStepActive(2);
+            await sleep(1500 + Math.random() * 800); 
+            setStepComplete(2);
 
-    document.getElementById("form").style.display = "none";
-    document.getElementById("loading").style.display = "block";
+            // Step 3: 模擬代價 (故意放慢，增加恐懼與價值感)
+            setStepActive(3);
+            await sleep(2200 + Math.random() * 1200); 
+            setStepComplete(3);
 
-    let loadingTexts = [
-        "分析市場路徑中...",
-        "計算風險模型...",
-        "比對歷史決策..."
-    ];
+            // Step 4: 收斂方案
+            setStepActive(4);
+            await sleep(1200 + Math.random() * 400); 
+            setStepComplete(4);
 
-    let i = 0;
-    let interval = setInterval(() => {
-        document.getElementById("loadingText").innerText = loadingTexts[i % loadingTexts.length];
-        i++;
-    }, 500);
-
-    setTimeout(() => {
-
-        clearInterval(interval);
-
-        document.getElementById("loading").style.display = "none";
-
-        document.getElementById("result").style.display = "block";
-        document.getElementById("result").innerHTML = `
-👉 系統已接收你的決策參數<br><br>
-
-目前正在進行多路徑推演與風險計算<br><br>
-
-📩 你的完整決策報告將於 24 小時內發送至信箱<br><br>
-
-這份報告會直接告訴你：<br>
-- 哪一條路成功率最高<br>
-- 哪些選擇看起來合理但其實是錯的<br>
-- 你現在最應該做的下一步<br><br>
-
-⚠️ 多數人不是輸在能力<br>
-而是「在這一步選錯方向」<br><br>
-
-這也是你現在做這個分析的原因<br><br>
-
-<button onclick="location.reload()">重新開始</button>
-        `;
-
-    }, 2000);
-}
-</script>
-
+            await sleep(500);
+            transitionState('state-loading', 'state-success');
+        }
+    </script>
 </body>
 </html>
