@@ -3,21 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COGITATOR // LIFE GOAL CORE</title>
+    <title>COGITATOR // STABILITY PATCH V5.8</title>
     <style>
+        /* --- 核心視覺：DOOM x 40K --- */
         :root {
             --bg: #0a0a0a;
-            --doom-red: #ff2e2e;
-            --neon-green: #00ff41;
-            --border-color: #ff2e2e;
+            --red: #ff2e2e;
+            --green: #00ff41;
             --font: "Courier New", Courier, monospace;
         }
 
+        @keyframes flicker {
+            0% { opacity: 0.9; } 5% { opacity: 0.7; } 100% { opacity: 1; }
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
-            background-color: var(--bg);
+            background: var(--bg);
             background-image: radial-gradient(circle, #1a0000 0%, #0a0a0a 100%);
-            color: var(--doom-red);
+            color: var(--red);
             font-family: var(--font);
             height: 100vh;
             display: flex;
@@ -26,200 +31,213 @@
             letter-spacing: 1px;
         }
 
-        /* Scanline Effect */
+        /* 掃描線 */
         body::after {
-            content: "";
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none; z-index: 1000;
+            content: ""; position: absolute; top:0; left:0; width:100%; height:100%;
+            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.1) 50%), 
+                        linear-gradient(90deg, rgba(255,0,0,0.02), rgba(0,255,0,0.01), rgba(0,0,255,0.02));
+            background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 1000;
         }
 
         header {
             padding: 15px 20px;
-            border-bottom: 2px solid var(--doom-red);
-            background: rgba(20, 0, 0, 0.9);
-            box-shadow: 0 0 15px var(--doom-red);
+            border-bottom: 2px solid var(--red);
+            background: rgba(20,0,0,0.9);
+            box-shadow: 0 0 15px var(--red);
+            z-index: 10;
         }
 
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .brand { font-weight: bold; font-size: 16px; text-shadow: 0 0 8px var(--doom-red); }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .brand { font-weight: bold; text-shadow: 0 0 8px var(--red); animation: flicker 2s infinite; }
         
-        /* 🎯 LIFE GOAL DISPLAY */
-        .objective-banner {
-            border: 1px solid var(--neon-green);
-            background: rgba(0, 255, 65, 0.05);
-            padding: 8px 12px;
-            color: var(--neon-green);
-            font-size: 12px;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .objective-label { font-weight: 900; background: var(--neon-green); color: #000; padding: 2px 5px; }
-
-        #chat-flow {
-            flex: 1; overflow-y: auto; padding: 20px;
-            display: flex; flex-direction: column; gap: 20px;
+        .status-bar { 
+            border: 1px solid var(--green); background: rgba(0,255,65,0.05); 
+            padding: 5px 12px; color: var(--green); font-size: 11px; margin-top: 10px; 
+            display: flex; justify-content: space-between;
         }
 
-        .msg-wrapper { display: flex; width: 100%; }
+        .progress-track { background: #222; height: 4px; width: 100px; border: 1px solid var(--red); margin-left: 10px; }
+        #progress-bar { background: var(--red); height: 100%; width: 0%; transition: width 0.5s; }
+
+        #chat-flow { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .msg-wrapper { display: flex; width: 100%; animation: fadeIn 0.3s forwards; }
         .msg-wrapper.user { justify-content: flex-end; }
-        .bubble {
-            max-width: 80%; padding: 15px; border: 1px solid transparent; font-size: 14px;
-        }
-        .ai .bubble {
-            background: rgba(255, 46, 46, 0.1); border-color: var(--doom-red);
-            box-shadow: inset 0 0 10px rgba(255, 46, 46, 0.1);
-            clip-path: polygon(0 0, 100% 0, 100% 85%, 95% 100%, 0 100%);
-        }
-        .user .bubble {
-            background: rgba(0, 255, 65, 0.05); border-color: var(--neon-green); color: var(--neon-green);
-            clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 15%);
-        }
-
-        /* DECISION CARD UPGRADE */
-        .card {
-            border: 1px solid var(--doom-red); background: rgba(25, 0, 0, 0.95);
-            padding: 20px; box-shadow: 0 0 20px var(--doom-red); width: 100%; margin-top: 10px;
-        }
-        .card-h { font-weight: bold; border-bottom: 1px solid var(--doom-red); padding-bottom: 8px; margin-bottom: 12px; }
-        .tag-row { display: flex; gap: 10px; margin-bottom: 15px; font-size: 11px; }
-        .tag-alignment { background: var(--neon-green); color: #000; padding: 3px 8px; font-weight: bold; }
-        .tag-risk { background: var(--doom-red); color: #fff; padding: 3px 8px; font-weight: bold; }
         
-        .opt { background: rgba(255,255,255,0.03); padding: 12px; border: 1px solid #444; margin-bottom: 10px; }
-        .opt-n { font-weight: bold; color: var(--doom-red); text-transform: uppercase; margin-bottom: 5px; display: block; }
-        .next-box { margin-top: 15px; color: #fff; font-size: 12px; font-style: italic; border-top: 1px dashed #666; padding-top: 10px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        #typing { padding: 0 20px 10px; font-size: 11px; color: var(--neon-green); display: none; }
+        .bubble { max-width: 85%; padding: 15px; border: 1px solid transparent; font-size: 14px; line-height: 1.4; }
+        .ai .bubble { background: rgba(255,46,46,0.1); border-color: var(--red); clip-path: polygon(0 0, 100% 0, 100% 90%, 95% 100%, 0 100%); }
+        .user .bubble { background: rgba(0,255,65,0.05); border-color: var(--green); color: var(--green); clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 10%); }
 
-        .controls { padding: 20px; background: #000; border-top: 2px solid var(--doom-red); }
-        .p-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 11px; }
-        select { background: #000; color: var(--doom-red); border: 1px solid var(--doom-red); font-family: var(--font); }
-        .i-row { display: flex; gap: 10px; }
-        input {
-            flex: 1; background: #111; border: 1px solid #333; padding: 12px; color: var(--neon-green); font-family: var(--font); outline: none;
+        /* 路徑卡片 */
+        .path-card { 
+            border: 1px solid var(--red); background: rgba(40,0,0,0.9); padding: 12px; 
+            margin-top: 10px; cursor: pointer; transition: 0.2s;
         }
-        button {
-            background: transparent; border: 1px solid var(--doom-red); color: var(--doom-red);
-            padding: 0 20px; font-family: var(--font); font-weight: bold; cursor: pointer;
+        .path-card:hover { background: var(--red); color: #000; }
+
+        /* 任務卡片 */
+        .quest-card {
+            border: 2px solid var(--red); background: rgba(20,0,0,0.95); padding: 15px;
+            box-shadow: 0 0 15px var(--red); margin-top: 10px;
         }
-        button:hover { background: var(--doom-red); color: #000; box-shadow: 0 0 10px var(--doom-red); }
+
+        .controls { padding: 20px; background: #000; border-top: 2px solid var(--red); }
+        .input-row { display: flex; gap: 10px; }
+        input { flex: 1; background: #111; border: 1px solid #333; padding: 12px; color: var(--green); font-family: var(--font); outline: none; }
+        button { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 0 20px; font-weight: bold; cursor: pointer; font-family: var(--font); }
+        button:hover:not(:disabled) { background: var(--red); color: #000; }
+        button:disabled { opacity: 0.3; }
+
+        .typing-tag { font-size: 11px; color: var(--green); animation: flicker 0.5s infinite; }
     </style>
 </head>
 <body>
 
     <header>
         <div class="header-top">
-            <div class="brand">COGITATOR // V5.2 OBJ_CORE</div>
-            <div style="font-size: 10px; cursor: pointer; text-decoration: underline;" onclick="clearMem()">PURGE MEMORY</div>
+            <div class="brand">COGITATOR // CORE_V5.8</div>
+            <div style="font-size: 10px; cursor: pointer;" onclick="purge()">[PURGE_MEMORY]</div>
         </div>
-        <div class="objective-banner">
-            <span class="objective-label">🎯 CURRENT OBJECTIVE</span>
-            <span id="lifeGoal">NO ACTIVE OBJECTIVE DETECTED...</span>
+        <div class="status-bar">
+            <div>TARGET: <span id="goal-txt" style="color:#fff">AWAITING...</span></div>
+            <div style="display:flex; align-items:center;">
+                SYNC: <div class="progress-track"><div id="progress-bar"></div></div>
+            </div>
         </div>
     </header>
 
     <div id="chat-flow">
-        <div class="msg-wrapper ai">
-            <div class="bubble">CORE ONLINE. 偵測到環境變量。請陳述您的「核心目標」。</div>
-        </div>
+        <div class="msg-wrapper ai"><div class="bubble">CORE ONLINE. 正在等待變數輸入...</div></div>
     </div>
 
-    <div id="typing">PROCESSOR ACTIVE...</div>
-
     <div class="controls">
-        <div class="p-row">
-            <div id="mode-lab">PROTOCOL: CALM</div>
-            <select id="persona-select" onchange="updateMode()">
-                <option value="calm">CALM</option>
-                <option value="direct">DIRECT</option>
-                <option value="aggressive">AGGRESSIVE</option>
-            </select>
-        </div>
-        <div class="i-row">
+        <div class="input-row">
             <input type="text" id="ui-input" placeholder="ENTER VARIABLES..." autocomplete="off">
             <button id="send-btn" onclick="send()">EXECUTE</button>
         </div>
     </div>
 
     <script>
+        // 🎯 唯一宣告：不重複
         const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec";
+        
         let userId = localStorage.getItem("cogitator_id") || ("CORE_" + Date.now());
         localStorage.setItem("cogitator_id", userId);
 
         let context = [];
-        const flow = document.getElementById('chat-flow'), input = document.getElementById('ui-input'), btn = document.getElementById('send-btn');
-        const typing = document.getElementById('typing'), pSelect = document.getElementById('persona-select'), goalDisplay = document.getElementById('lifeGoal');
+        let loading = false;
 
-        function updateMode() { document.getElementById("mode-lab").innerText = "PROTOCOL: " + pSelect.value.toUpperCase(); }
-        function clearMem() { localStorage.removeItem("cogitator_id"); location.reload(); }
+        const flow = document.getElementById('chat-flow');
+        const input = document.getElementById('ui-input');
+        const btn = document.getElementById('send-btn');
+        const goalTxt = document.getElementById('goal-txt');
+        const progressUI = document.getElementById('progress-bar');
+
+        function purge() { localStorage.removeItem("cogitator_id"); location.reload(); }
         function scroll() { flow.scrollTop = flow.scrollHeight; }
 
         function append(role, content, type = "text") {
-            const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${role}`;
-            const bubble = document.createElement('div'); bubble.className = "bubble";
+            const wrap = document.createElement('div');
+            wrap.className = `msg-wrapper ${role}`;
+            const bubble = document.createElement('div');
+            bubble.className = "bubble";
+
+            if (type === "typing") {
+                bubble.className = "typing-tag";
+                bubble.textContent = content;
+                wrap.appendChild(bubble);
+                flow.appendChild(wrap);
+                scroll();
+                return wrap; // 返回元素引用以便刪除
+            }
 
             if (type === "text") {
                 bubble.textContent = content;
-            } else if (type === "decision") {
+            } else if (type === "decision_paths") {
+                let html = `<div>${content.lead}</div>`;
+                content.paths.forEach(p => {
+                    html += `<div class="path-card" onclick="choosePath('${p.id}')">▪ ${p.title}<br><small>${p.desc}</small></div>`;
+                });
+                bubble.innerHTML = html;
+            } else if (type === "task") {
                 bubble.innerHTML = `
-                    <div class="card">
-                        <div class="card-h">+++ DECISION PACKET: ${content.title} +++</div>
-                        <div class="tag-row">
-                            <span class="tag-alignment">🎯 目標對齊: ${content.alignment}</span>
-                            <span class="tag-risk">⚠️ 風險: ${content.risk}</span>
-                        </div>
-                        <div class="card-rec">${content.recommendation}</div>
-                        ${content.options.map(o => `<div class="opt"><span class="opt-n">${o.name}</span><div style="font-size:11px;color:var(--neon-green)">✓ ${o.pros.join(' | ')}</div><div style="font-size:11px;color:var(--doom-red)">✕ ${o.cons.join(' | ')}</div></div>`).join('')}
-                        <div class="next-box">>> SYSTEM COMMAND: ${content.next_action}</div>
+                    <div class="quest-card">
+                        <div style="font-weight:bold; border-bottom:1px solid var(--red); margin-bottom:10px;">+++ ACTIVE QUEST +++</div>
+                        <div style="color:var(--green); font-size:12px; margin-bottom:5px;">OBJ: ${content.goal}</div>
+                        <div style="color:#fff; padding:10px 0;">${content.task}</div>
+                        <div style="font-size:10px; font-style:italic;">回報「我做好了」以推進進度。</div>
                     </div>
                 `;
             }
-            wrap.appendChild(bubble); flow.appendChild(wrap); scroll();
+
+            wrap.appendChild(bubble);
+            flow.appendChild(wrap);
+            scroll();
+        }
+
+        async function choosePath(id) {
+            input.value = "我選擇 " + id;
+            send();
         }
 
         async function send() {
-            const val = input.value.trim(); if (!val) return;
-            append("user", val); context.push({ role: "user", content: val });
-            if (context.length > 10) context.shift();
+            if (loading) return;
+            const val = input.value.trim();
+            if (!val) return;
 
-            input.value = ""; btn.disabled = true; typing.style.display = "block"; scroll();
+            loading = true;
+            btn.disabled = true;
+
+            append("user", val);
+            context.push({ role: "user", content: val });
+            input.value = "";
+
+            const typingIndicator = append("ai", "CORE PROCESSING...", "typing");
 
             try {
+                // ✅ 穩定版 Fetch：無 Headers
                 const res = await fetch(ENDPOINT, {
                     method: "POST",
-                    body: JSON.stringify({ message: val, context: context, persona: pSelect.value, userId: userId })
+                    body: JSON.stringify({ message: val, context: context, userId: userId })
                 });
 
-                const data = await res.json();
-                typing.style.display = "none";
+                const text = await res.text();
+                
+                // 移除 Typing
+                if (typingIndicator) flow.removeChild(typingIndicator);
 
-                // UPDATE GOAL UI
-                if (data.identity && data.identity.mainGoal) {
-                    goalDisplay.innerText = data.identity.mainGoal;
-                    goalDisplay.style.color = "var(--neon-green)";
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    append("ai", "系統回應格式異常，請重新嘗試。");
+                    return;
                 }
 
-                if (data.type === "decision") {
-                    append("ai", "SYNCHRONIZING GOALS... OPTIMAL PATH CALCULATED.");
-                    await new Promise(r => setTimeout(r, 800));
-                    append("ai", data, "decision");
-                    context.push({ role: "ai", content: data.recommendation });
+                // UI 更新
+                if (data.identity && data.identity.mainGoal) goalTxt.innerText = data.identity.mainGoal;
+                if (data.progress) progressUI.style.width = data.progress.percent + "%";
+
+                // Fallback 處理
+                if (!data.reply && !data.paths && !data.task) {
+                    append("ai", "核心已接收，請繼續說明細節或卡點。");
                 } else {
-                    append("ai", data.reply || "AWAITING FURTHER VARIABLES...");
-                    context.push({ role: "ai", content: data.reply });
+                    if (data.reply) append("ai", data.reply);
+                    if (data.type === "decision_paths") append("ai", data, "decision_paths");
+                    if (data.type === "task") append("ai", data, "task");
                 }
-                if (context.length > 10) context.shift();
+
+                context.push({ role: "ai", content: data.reply || data.task || "ACK" });
 
             } catch (err) {
-                typing.style.display = "none";
-                append("ai", "ERROR: VOID CONNECTION. RE-DEPLOY CORE.");
+                if (typingIndicator) flow.removeChild(typingIndicator);
+                append("ai", "連線失敗。請確認 GAS 已正確部署。");
             } finally {
-                btn.disabled = false; input.focus();
+                loading = false;
+                btn.disabled = false;
+                input.focus();
             }
         }
 
