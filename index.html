@@ -1,117 +1,184 @@
-# FINAL POLISHED INIT (PRODUCT VERSION)
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COGITATOR // CORE_V9.0</title>
+    <style>
+        :root { --bg: #0a0a0a; --red: #ff2e2e; --green: #00ff41; --font: "Courier New", Courier, monospace; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg); background-image: radial-gradient(circle, #1a0000 0%, #0a0a0a 100%);
+            color: var(--red); font-family: var(--font); height: 100vh; display: flex; flex-direction: column; overflow: hidden; letter-spacing: 1px;
+        }
+        body::after {
+            content: ""; position: absolute; top:0; left:0; width:100%; height:100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+            background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 1000;
+        }
+        header { padding: 15px 20px; border-bottom: 2px solid var(--red); background: rgba(20, 0, 0, 0.9); box-shadow: 0 0 15px var(--red); z-index: 10; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .status-bar { border: 1px solid var(--green); background: rgba(0, 255, 65, 0.05); padding: 8px 12px; color: var(--green); font-size: 11px; margin-top: 10px; display: flex; flex-wrap: wrap; gap: 15px; }
+        .tag { font-weight: 900; background: var(--green); color: #000; padding: 0 5px; margin-right: 5px; }
 
-window.addEventListener('load', () => {
+        /* 🎨 1. 進度條 UI 升級 */
+        #progress-bar-wrap { width: 100%; height: 6px; background: #111; border: 1px solid #300; margin-top: 8px; overflow: hidden; }
+        #progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #00ff41, #ff2e2e); transition: width 0.4s ease; box-shadow: 0 0 10px #00ff41; }
+        
+        #chat-flow { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; scroll-behavior: smooth; }
+        .msg-wrapper { display: flex; width: 100%; animation: fadeIn 0.3s forwards; }
+        .msg-wrapper.user { justify-content: flex-end; }
+        .bubble { max-width: 85%; padding: 15px; border: 1px solid transparent; font-size: 14px; line-height: 1.5; }
+        .ai .bubble { background: rgba(255, 46, 46, 0.1); border-color: var(--red); clip-path: polygon(0 0, 100% 0, 100% 92%, 95% 100%, 0 100%); }
+        .user .bubble { background: rgba(0, 255, 65, 0.05); border-color: var(--green); color: var(--green); clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%, 0 12%); }
 
-// 🔥 已啟動過
-if (sessionStorage.getItem("booted")) {
-UI_STATE = "active";
-append("ai","系統已恢復，繼續上次進度");
-return;
-}
+        .path-card { border: 1px solid var(--red); background: rgba(40, 0, 0, 0.9); padding: 12px; margin-top: 10px; cursor: pointer; transition: 0.2s; }
+        .path-card:hover { background: var(--red); color: #000; }
+        
+        /* 🎯 2. 任務卡 UI 升級 */
+        .quest-card { border: 2px solid var(--red); background: rgba(20, 0, 0, 0.95); padding: 15px; box-shadow: 0 0 20px var(--red); margin-top: 10px; }
+        .quest-header { color: #ff2e2e; font-weight: bold; margin-bottom: 10px; border-bottom: 1px solid #ff2e2e; padding-bottom: 5px; font-size: 12px; }
+        .quest-body { color: #fff; font-size: 15px; margin: 15px 0; border-left: 3px solid var(--red); padding-left: 12px; }
+        .quest-footer { display: flex; gap: 10px; }
+        
+        .btn-done { flex: 2; border: 1px solid var(--green); color: var(--green); padding: 10px; text-align: center; cursor: pointer; font-weight: bold; font-size: 12px; }
+        .btn-done:hover { background: var(--green); color: #000; }
+        
+        .btn-skip { flex: 1; border: 1px solid #555; color: #555; padding: 10px; text-align: center; cursor: pointer; font-size: 12px; }
+        .btn-skip:hover { border-color: #777; color: #777; }
 
-sessionStorage.setItem("booted", "1");
-UI_STATE = "init";
+        .achievement { background: var(--green); color: #000; padding: 12px; margin: 10px 0; text-align: center; font-weight: 900; animation: fadeUp 0.6s ease-out; box-shadow: 0 0 20px var(--green); z-index: 100; }
+        
+        .controls { padding: 20px; background: #000; border-top: 2px solid var(--red); }
+        .input-row { display: flex; gap: 10px; }
+        input { flex: 1; background: #111; border: 1px solid #333; padding: 12px; color: var(--green); font-family: var(--font); outline: none; }
+        button { background: transparent; border: 1px solid var(--red); color: var(--red); padding: 0 20px; font-weight: bold; cursor: pointer; font-family: var(--font); }
+        
+        .typing { font-size: 11px; color: var(--green); animation: flicker 0.5s infinite; padding: 10px 20px; }
+        @keyframes flicker { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
 
-// 👉 URL 進度優先
-if (progress && !sessionStorage.getItem("progress_loaded")) {
+    <header>
+        <div class="header-top">
+            <div style="font-weight:bold; text-shadow:0 0 5px var(--red);">COGITATOR // CORE_V9.0</div>
+            <div style="font-size: 10px; cursor: pointer; color: #555;" onclick="purge()">[PURGE_MEMORY]</div>
+        </div>
+        <div class="status-bar">
+            <div><span class="tag">LVL</span> <span id="lvl-txt">1</span></div>
+            <div><span class="tag">EXE</span> <span id="exe-txt">0</span></div>
+            <div><span class="tag">OBJ</span> <span id="goal-txt" style="color:#fff">WAITING...</span></div>
+        </div>
+        <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
 
-```
-sessionStorage.setItem("progress_loaded", "1");
-localStorage.setItem("progress", progress);
+        <div style="padding:10px; text-align:center; border-top:1px solid #300; margin-top:10px;">
+          <button onclick="startMode('lite')" style="margin-right:10px; border:1px solid var(--green); color:var(--green); font-size:11px;">👉 新手模式</button>
+          <button onclick="startMode('pro')" style="border:1px solid var(--red); color:var(--red); font-size:11px;">⚡ 進階模式</button>
+        </div>
+    </header>
 
-append("ai", `已接續進度：${progress}`);
-append("ai", `任務同步完成`);
+    <div id="chat-flow"></div>
 
-fetch(ENDPOINT,{
-  method:"POST",
-  body:JSON.stringify({ message:`進度 ${progress}`, userId, context })
-}).then(res=>res.json()).then(handleResponse);
+    <div id="typing" style="display:none;" class="typing">>> ANALYZING BEHAVIOR...</div>
 
-return;
-```
+    <div class="controls">
+        <div class="input-row">
+            <input type="text" id="ui-input" placeholder="輸入變數..." autocomplete="off">
+            <button id="send-btn" onclick="send()">執行</button>
+        </div>
+    </div>
 
-}
+    <script>
+        const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec"; 
+        
+        let loading = false, context = [];
+        let userId = localStorage.getItem("cogitator_id") || ("CORE_" + Date.now());
+        localStorage.setItem("cogitator_id", userId);
 
-// 👉 本地恢復
-if (!progress && savedProgress) {
+        let UI_STATE = "boot"; 
+        const params = new URLSearchParams(window.location.search);
+        const progress = params.get("progress");
+        const savedProgress = localStorage.getItem("progress");
 
-```
-append("ai", `恢復上次進度：${savedProgress}`);
+        const chat = document.getElementById('chat-flow'), input = document.getElementById('ui-input'), btn = document.getElementById('send-btn');
+        const goalTxt = document.getElementById('goal-txt'), lvlTxt = document.getElementById('lvl-txt'), exeTxt = document.getElementById('exe-txt'), typingUI = document.getElementById('typing');
 
-fetch(ENDPOINT,{
-  method:"POST",
-  body:JSON.stringify({ message:`進度 ${savedProgress}`, userId, context })
-}).then(res=>res.json()).then(handleResponse);
+        function safeAppend(role, text) {
+            if (UI_STATE !== "boot") return; 
+            append(role, text);
+        }
 
-return;
-```
+        // 📈 1. 更新進度條函式
+        function updateProgress(percent) {
+            const bar = document.getElementById("progress-bar");
+            if (bar) bar.style.width = percent + "%";
+        }
 
-}
+        window.addEventListener('load', () => {
+            if (sessionStorage.getItem("booted")) { UI_STATE = "active"; return; }
+            sessionStorage.setItem("booted", "1");
+            UI_STATE = "init";
 
-// 👉 新使用者
-UI_STATE = "boot";
-
-safeAppend("ai","核心已啟動。這不是聊天 AI，這是決策引擎。");
-safeAppend("ai","不用想太多");
-safeAppend("ai","直接輸入：我想賺錢 或 我不知道要做什麼");
-
-});
-
+            if (progress && !sessionStorage.getItem("progress_loaded")) {
+                sessionStorage.setItem("progress_loaded", "1");
+                localStorage.setItem("progress", progress);
                 append("ai", `已接續進度：${progress}`);
                 append("ai", `任務同步完成（${progress}）`);
-
-                fetch(ENDPOINT, {
-                    method: "POST",
-                    body: JSON.stringify({ message: `進度 ${progress}`, userId: userId, context: context })
-                }).then(res => res.json()).then(data => handleResponse(data));
-                
+                fetch(ENDPOINT, { method: "POST", body: JSON.stringify({ message: `進度 ${progress}`, userId: userId, context: context }) }).then(res => res.json()).then(data => handleResponse(data));
                 return;
             }
 
-            // 👉 本地記憶恢復模式
             if (!progress && savedProgress) {
                 append("ai", `恢復上次進度：${savedProgress}`);
-                
-                fetch(ENDPOINT, {
-                    method: "POST",
-                    body: JSON.stringify({ message: `進度 ${savedProgress}`, userId: userId, context: context })
-                }).then(res => res.json()).then(data => handleResponse(data));
-                
+                fetch(ENDPOINT, { method: "POST", body: JSON.stringify({ message: `進度 ${savedProgress}`, userId: userId, context: context }) }).then(res => res.json()).then(data => handleResponse(data));
                 return;
             }
 
-            // 👉 新使用者初始化 (無任何進度時才進入 boot)
             UI_STATE = "boot";
             safeAppend("ai", "核心已啟動。這不是聊天 AI，這是決策引擎。");
-            safeAppend("ai", "不用想太多");
-            safeAppend("ai", "直接輸入：我想賺錢 或 我不知道要做什麼");
+            safeAppend("ai", "不用想太多，直接輸入：我想賺錢");
         });
 
         function startMode(mode) {
             if (mode === "lite") {
-                append("ai", "正在進入簡易模式（引導版本）");
-                append("ai", "新分頁已開啟，請照指示完成第一步");
+                append("ai", "正在進入簡易模式...");
                 window.open("https://chatgpt.com/g/g-69e5d7e9f2688191bfe2d1c4ea800bbd-cogitator-engine", "_blank");
             } else {
                 append("ai", "已進入進階模式（完整系統）");
-                append("ai", "提示：完整系統會自動記錄你的每一步");
             }
         }
 
-        function purge() { 
-            localStorage.removeItem("cogitator_id"); 
-            localStorage.removeItem("progress"); 
-            sessionStorage.removeItem("progress_loaded"); 
-            sessionStorage.removeItem("booted"); 
-            location.reload(); 
-        }
-
+        function purge() { localStorage.clear(); sessionStorage.clear(); location.reload(); }
         function scroll() { chat.scrollTop = chat.scrollHeight; }
 
         function showAchievement(text) {
             const div = document.createElement("div"); div.className = "achievement"; div.innerText = "✔ " + text;
             chat.appendChild(div); scroll();
             setTimeout(() => div.remove(), 2500);
+        }
+
+        // ⚡ 3. 任務完成動畫
+        function flashScreen() {
+            const flash = document.createElement("div");
+            flash.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,255,65,0.12); z-index:9999; pointer-events:none;";
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 200);
+        }
+
+        function taskDone() {
+            showAchievement("MISSION COMPLETE");
+            flashScreen();
+            input.value = "任務完成";
+            send();
+        }
+
+        function skipTask() {
+            append("user", "跳過這個任務");
+            input.value = "跳過這個任務";
+            send();
         }
 
         function append(role, content, type = "text") {
@@ -122,17 +189,19 @@ safeAppend("ai","直接輸入：我想賺錢 或 我不知道要做什麼");
                 bubble.textContent = content;
             } else if (type === "paths") {
                 let html = `<div>${content.lead}</div><div style="margin:10px 0;">`;
-                content.paths.forEach(p => {
-                    html += `<div class="path-card" onclick="choosePath('${p.id}')">▪ ${p.title}<br><small>${p.desc}</small></div>`;
-                });
+                content.paths.forEach(p => { html += `<div class="path-card" onclick="choosePath('${p.id}')">▪ ${p.title}<br><small>${p.desc}</small></div>`; });
                 html += `</div><div>${content.prompt}</div>`;
                 bubble.innerHTML = html;
             } else if (type === "task") {
+                // 🎯 2. 任務卡 UI 升級渲染
                 bubble.innerHTML = `
                     <div class="quest-card">
-                        <div style="font-weight:bold; border-bottom:1px solid var(--red); padding-bottom:5px; margin-bottom:12px; color:var(--red);">+++ ACTIVE TASK +++</div>
-                        <div style="color:#fff; padding:15px 0; font-size:16px; border-left:4px solid var(--red); padding-left:15px;">${content.task}</div>
-                        <div class="btn-done" onclick="taskDone()">✔ 執行完畢</div>
+                        <div class="quest-header">+++ ACTIVE MISSION +++</div>
+                        <div class="quest-body">${content.task}</div>
+                        <div class="quest-footer">
+                            <div class="btn-done" onclick="taskDone()">✔ 執行完畢</div>
+                            <div class="btn-skip" onclick="skipTask()">✖ 跳過任務</div>
+                        </div>
                     </div>
                 `;
             }
@@ -142,23 +211,16 @@ safeAppend("ai","直接輸入：我想賺錢 或 我不知道要做什麼");
 
         async function choosePath(id) { input.value = "我選擇 " + id; send(); }
 
-        async function taskDone() {
-            showAchievement("ACTION SYNCED // LEVEL UP");
-            input.value = "任務完成";
-            send();
-        }
-
-        // 🧠 4. 後端回應處理 (狀態鎖定)
         function handleResponse(data) {
-            // 如果已經是 active 狀態，代表這不是第一次同步
-            // 我們這裡不 return，因為後續聊天也需要 handleResponse 渲染內容
-            // 但我們會將 UI_STATE 設為 active，徹底關閉 boot 訊息的門
             UI_STATE = "active"; 
-
             if (data.identity && data.identity.mainGoal) goalTxt.innerText = data.identity.mainGoal;
             if (data.profile) {
                 lvlTxt.innerText = data.profile.level;
                 exeTxt.innerText = data.profile.execution;
+            }
+            // 📈 4. 綁定後端進度
+            if (data.progress && data.progress.percent !== undefined) {
+                updateProgress(data.progress.percent);
             }
             if (data.reply) append("ai", data.reply);
             if (data.type === "paths") append("ai", data, "paths");
@@ -169,353 +231,16 @@ safeAppend("ai","直接輸入：我想賺錢 或 我不知道要做什麼");
         async function send() {
             if (loading) return;
             const val = input.value.trim(); if (!val) return;
-
             loading = true; btn.disabled = true;
             append("user", val); context.push({ role: "user", content: val });
             input.value = ""; typingUI.style.display = "block"; scroll();
-
             try {
                 const res = await fetch(ENDPOINT, { method: "POST", body: JSON.stringify({ message: val, context: context, userId: userId }) });
                 const data = await res.json();
                 typingUI.style.display = "none";
                 handleResponse(data);
-            } catch (err) {
-                typingUI.style.display = "none";
-                append("ai", "連線斷開。請檢查網址或權限設定。");
-            } finally {
-                loading = false; btn.disabled = false; input.focus();
-            }
-        }
-
-        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') send(); });
-    </script>
-</body>
-</html>        </div>
-
-        <div style="padding:10px; text-align:center; border-top:1px solid #300; margin-top:10px;">
-          <button onclick="startMode('lite')" style="margin-right:10px; border:1px solid var(--green); color:var(--green); font-size:11px;">
-            👉 新手模式（簡單）
-          </button>
-          <button onclick="startMode('pro')" style="border:1px solid var(--red); color:var(--red); font-size:11px;">
-            ⚡ 進階模式（完整系統）
-          </button>
-        </div>
-    </header>
-
-    <div id="chat-flow">
-        <div class="msg-wrapper ai">
-            <div class="bubble">核心已啟動。這不是聊天 AI，這是決策引擎。<br><br>👉 **請直接輸入您現在最想解決的一件事。**</div>
-        </div>
-    </div>
-
-    <div id="typing" style="display:none;" class="typing">>> ANALYZING BEHAVIOR...</div>
-
-    <div class="controls">
-        <div class="input-row">
-            <input type="text" id="ui-input" placeholder="輸入變數..." autocomplete="off">
-            <button id="send-btn" onclick="send()">執行</button>
-        </div>
-    </div>
-
-    <script>
-        // 🎯 核心端點
-        const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec"; 
-        
-        let loading = false, context = [];
-        let userId = localStorage.getItem("cogitator_id") || ("CORE_" + Date.now());
-        localStorage.setItem("cogitator_id", userId);
-
-        const params = new URLSearchParams(window.location.search);
-        const progress = params.get("progress");
-        const savedProgress = localStorage.getItem("progress");
-
-        const chat = document.getElementById('chat-flow'), input = document.getElementById('ui-input'), btn = document.getElementById('send-btn');
-        const goalTxt = document.getElementById('goal-txt'), lvlTxt = document.getElementById('lvl-txt'), exeTxt = document.getElementById('exe-txt'), typingUI = document.getElementById('typing');
-
-        // 🧩 接續邏輯與優先權修正
-        window.addEventListener('load', () => {
-            if (progress && !sessionStorage.getItem("progress_loaded")) {
-                // 🧩 任務 1 & 3：URL 進度優先 + 強化系統感
-                sessionStorage.setItem("progress_loaded", "1");
-                localStorage.setItem("progress", progress);
-
-                append("ai", `已接續進度：${progress}`);
-                append("ai", `任務同步完成（${progress}）`);
-                append("ai", "已切換至完整系統（自動記錄模式）");
-
-                fetch(ENDPOINT, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        message: `進度 ${progress}`,
-                        userId: userId,
-                        context: context
-                    })
-                }).then(res => res.json()).then(data => handleResponse(data));
-
-            } else if (!progress && savedProgress) {
-                // 🧩 任務 1：當沒有 URL 參數時，才使用本地儲存
-                append("ai", `恢復上次進度：${savedProgress}`);
-                
-                fetch(ENDPOINT, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        message: `進度 ${savedProgress}`,
-                        userId: userId,
-                        context: context
-                    })
-                }).then(res => res.json()).then(data => handleResponse(data));
-            }
-        });
-
-        // 🧩 任務 2：強化新手模式引導
-        function startMode(mode) {
-            if (mode === "lite") {
-                append("ai", "正在進入簡易模式（引導版本）");
-                append("ai", "新分頁已開啟，請照指示完成第一步");
-
-                window.open(
-                    "https://chatgpt.com/g/g-69e5d7e9f2688191bfe2d1c4ea800bbd-cogitator-engine",
-                    "_blank"
-                );
-            } else {
-                append("ai", "已進入進階模式（完整系統）");
-                append("ai", "提示：完整系統會自動記錄你的每一步");
-            }
-        }
-
-        function purge() { localStorage.removeItem("cogitator_id"); localStorage.removeItem("progress"); sessionStorage.removeItem("progress_loaded"); location.reload(); }
-        function scroll() { chat.scrollTop = chat.scrollHeight; }
-
-        function showAchievement(text) {
-            const div = document.createElement("div"); div.className = "achievement"; div.innerText = "✔ " + text;
-            chat.appendChild(div); scroll();
-            setTimeout(() => div.remove(), 2500);
-        }
-
-        function append(role, content, type = "text") {
-            const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${role}`;
-            const bubble = document.createElement('div'); bubble.className = "bubble";
-
-            if (type === "text") {
-                bubble.textContent = content;
-            } else if (type === "paths") {
-                let html = `<div>${content.lead}</div><div style="margin:10px 0;">`;
-                content.paths.forEach(p => {
-                    html += `<div class="path-card" onclick="choosePath('${p.id}')">▪ ${p.title}<br><small>${p.desc}</small></div>`;
-                });
-                html += `</div><div>${content.prompt}</div>`;
-                bubble.innerHTML = html;
-            } else if (type === "task") {
-                bubble.innerHTML = `
-                    <div class="quest-card">
-                        <div style="font-weight:bold; border-bottom:1px solid var(--red); padding-bottom:5px; margin-bottom:12px; color:var(--red);">+++ ACTIVE TASK +++</div>
-                        <div style="color:#fff; padding:15px 0; font-size:16px; border-left:4px solid var(--red); padding-left:15px;">${content.task}</div>
-                        <div class="btn-done" onclick="taskDone()">✔ 執行完畢</div>
-                    </div>
-                `;
-            }
-
-            wrap.appendChild(bubble); chat.appendChild(wrap); scroll();
-        }
-
-        async function choosePath(id) { input.value = "我選擇 " + id; send(); }
-
-        async function taskDone() {
-            showAchievement("ACTION SYNCED // LEVEL UP");
-            input.value = "任務完成";
-            send();
-        }
-
-        function handleResponse(data) {
-            if (data.identity && data.identity.mainGoal) goalTxt.innerText = data.identity.mainGoal;
-            if (data.profile) {
-                lvlTxt.innerText = data.profile.level;
-                exeTxt.innerText = data.profile.execution;
-            }
-            if (data.reply) append("ai", data.reply);
-            if (data.type === "paths") append("ai", data, "paths");
-            if (data.type === "task") append("ai", data, "task");
-            context.push({ role: "ai", content: data.reply || data.task || "ACK" });
-        }
-
-        async function send() {
-            if (loading) return;
-            const val = input.value.trim(); if (!val) return;
-
-            loading = true; btn.disabled = true;
-            append("user", val); context.push({ role: "user", content: val });
-            input.value = ""; typingUI.style.display = "block"; scroll();
-
-            try {
-                const res = await fetch(ENDPOINT, { method: "POST", body: JSON.stringify({ message: val, context: context, userId: userId }) });
-                const data = await res.json();
-                typingUI.style.display = "none";
-                handleResponse(data);
-            } catch (err) {
-                typingUI.style.display = "none";
-                append("ai", "連線斷開。請檢查網址或權限設定。");
-            } finally {
-                loading = false; btn.disabled = false; input.focus();
-            }
-        }
-
-        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') send(); });
-    </script>
-</body>
-</html>        </div>
-
-        <div style="padding:10px; text-align:center; border-top:1px solid #300; margin-top:10px;">
-          <button onclick="startMode('lite')" style="margin-right:10px; border:1px solid var(--green); color:var(--green); font-size:11px;">
-            👉 新手模式（簡單）
-          </button>
-          <button onclick="startMode('pro')" style="border:1px solid var(--red); color:var(--red); font-size:11px;">
-            ⚡ 進階模式（完整系統）
-          </button>
-        </div>
-    </header>
-
-    <div id="chat-flow">
-        <div class="msg-wrapper ai">
-            <div class="bubble">核心已啟動。這不是聊天 AI，這是決策引擎。<br><br>👉 **請直接輸入您現在最想解決的一件事。**</div>
-        </div>
-    </div>
-
-    <div id="typing" style="display:none;" class="typing">>> ANALYZING BEHAVIOR...</div>
-
-    <div class="controls">
-        <div class="input-row">
-            <input type="text" id="ui-input" placeholder="輸入變數..." autocomplete="off">
-            <button id="send-btn" onclick="send()">執行</button>
-        </div>
-    </div>
-
-    <script>
-        // 🎯 核心端點
-        const ENDPOINT = "https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec"; 
-        
-        let loading = false, context = [];
-        let userId = localStorage.getItem("cogitator_id") || ("CORE_" + Date.now());
-        localStorage.setItem("cogitator_id", userId);
-
-        // 🧩 任務 3 & 4：URL 進度接收與本地儲存
-        const params = new URLSearchParams(window.location.search);
-        const progress = params.get("progress");
-        const savedProgress = localStorage.getItem("progress");
-
-        if (progress) {
-            localStorage.setItem("progress", progress);
-            // 由於 append 需要 DOM 加載，這裡稍後在初始化執行
-        }
-
-        const chat = document.getElementById('chat-flow'), input = document.getElementById('ui-input'), btn = document.getElementById('send-btn');
-        const goalTxt = document.getElementById('goal-txt'), lvlTxt = document.getElementById('lvl-txt'), exeTxt = document.getElementById('exe-txt'), typingUI = document.getElementById('typing');
-
-        // 初始化進度處理
-        window.addEventListener('load', () => {
-            if (progress) {
-                append("ai", `已接續進度：${progress}`);
-                fetch(ENDPOINT, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        message: `進度 ${progress}`,
-                        userId: userId,
-                        context: context
-                    })
-                }).then(res => res.json()).then(data => handleResponse(data));
-            } else if (savedProgress) {
-                append("ai", `恢復上次進度：${savedProgress}`);
-            }
-        });
-
-        // 🧩 任務 2：startMode 函式
-        function startMode(mode) {
-            if (mode === "lite") {
-                window.open(
-                    "https://chatgpt.com/g/g-69e5d7e9f2688191bfe2d1c4ea800bbd-cogitator-engine",
-                    "_blank"
-                );
-            } else {
-                append("ai", "已進入進階模式（完整系統）");
-            }
-        }
-
-        function purge() { localStorage.removeItem("cogitator_id"); localStorage.removeItem("progress"); location.reload(); }
-        function scroll() { chat.scrollTop = chat.scrollHeight; }
-
-        function showAchievement(text) {
-            const div = document.createElement("div"); div.className = "achievement"; div.innerText = "✔ " + text;
-            chat.appendChild(div); scroll();
-            setTimeout(() => div.remove(), 2500);
-        }
-
-        function append(role, content, type = "text") {
-            const wrap = document.createElement('div'); wrap.className = `msg-wrapper ${role}`;
-            const bubble = document.createElement('div'); bubble.className = "bubble";
-
-            if (type === "text") {
-                bubble.textContent = content;
-            } else if (type === "paths") {
-                let html = `<div>${content.lead}</div><div style="margin:10px 0;">`;
-                content.paths.forEach(p => {
-                    html += `<div class="path-card" onclick="choosePath('${p.id}')">▪ ${p.title}<br><small>${p.desc}</small></div>`;
-                });
-                html += `</div><div>${content.prompt}</div>`;
-                bubble.innerHTML = html;
-            } else if (type === "task") {
-                bubble.innerHTML = `
-                    <div class="quest-card">
-                        <div style="font-weight:bold; border-bottom:1px solid var(--red); padding-bottom:5px; margin-bottom:12px; color:var(--red);">+++ ACTIVE TASK +++</div>
-                        <div style="color:#fff; padding:15px 0; font-size:16px; border-left:4px solid var(--red); padding-left:15px;">${content.task}</div>
-                        <div class="btn-done" onclick="taskDone()">✔ 執行完畢</div>
-                    </div>
-                `;
-            }
-
-            wrap.appendChild(bubble); chat.appendChild(wrap); scroll();
-        }
-
-        async function choosePath(id) {
-            input.value = "我選擇 " + id;
-            send();
-        }
-
-        async function taskDone() {
-            showAchievement("ACTION SYNCED // LEVEL UP");
-            input.value = "任務完成";
-            send();
-        }
-
-        function handleResponse(data) {
-            if (data.identity && data.identity.mainGoal) goalTxt.innerText = data.identity.mainGoal;
-            if (data.profile) {
-                lvlTxt.innerText = data.profile.level;
-                exeTxt.innerText = data.profile.execution;
-            }
-            if (data.reply) append("ai", data.reply);
-            if (data.type === "paths") append("ai", data, "paths");
-            if (data.type === "task") append("ai", data, "task");
-            context.push({ role: "ai", content: data.reply || data.task || "ACK" });
-        }
-
-        async function send() {
-            if (loading) return;
-            const val = input.value.trim(); if (!val) return;
-
-            loading = true; btn.disabled = true;
-            append("user", val); context.push({ role: "user", content: val });
-            input.value = ""; typingUI.style.display = "block"; scroll();
-
-            try {
-                const res = await fetch(ENDPOINT, { method: "POST", body: JSON.stringify({ message: val, context: context, userId: userId }) });
-                const data = await res.json();
-                typingUI.style.display = "none";
-                handleResponse(data);
-            } catch (err) {
-                typingUI.style.display = "none";
-                append("ai", "連線斷開。請檢查網址或權限設定。");
-            } finally {
-                loading = false; btn.disabled = false; input.focus();
-            }
+            } catch (err) { typingUI.style.display = "none"; append("ai", "連線斷開。"); }
+            finally { loading = false; btn.disabled = false; input.focus(); }
         }
 
         input.addEventListener('keypress', (e) => { if (e.key === 'Enter') send(); });
