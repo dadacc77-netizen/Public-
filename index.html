@@ -1,66 +1,105 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>COGITATOR // 認知決策引擎</title>
-    <style>
-        :root {
-            --bg-color: #FFF8E7; /* Required Brand Cream White */
-            --accent-color: #F2B705; /* Required Brand Honey Yellow */
-            --accent-hover: #DDA600;
-            --text-primary: #0A0A0A;
-            --text-secondary: #5A5A5C;
-            --text-tertiary: #8E8E93;
-            --surface: #FFFFFF;
-            --border-light: rgba(0, 0, 0, 0.06);
-            --border-focus: rgba(0, 0, 0, 0.15);
-            --danger-bg: rgba(215, 48, 48, 0.04);
-            --danger-text: #D73030;
-            --shadow-subtle: 0 4px 24px rgba(0, 0, 0, 0.02);
-            --shadow-float: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-            --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COGITATOR 決策引擎</title>
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+    background: #FFF8E7;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            line-height: 1.5;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 24px;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+.container {
+    max-width: 600px;
+    width: 100%;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+}
 
-        .app-container {
-            width: 100%;
-            max-width: 480px;
-            position: relative;
-        }
+textarea, input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
 
-        /* 頂部系統列 */
-        .system-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            padding: 0 8px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.06em;
-            color: var(--text-tertiary);
-            text-transform: uppercase;
-        }
+button {
+    margin-top: 15px;
+    width: 100%;
+    padding: 12px;
+    background: #F2B705;
+    border: none;
+}
+
+.loading, .result {
+    display: none;
+    margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>你現在這個決策，會直接影響你接下來的時間與資源</h2>
+
+<div id="form">
+<textarea id="problem" placeholder="輸入你的問題"></textarea>
+<input id="email" placeholder="你的Email">
+<button onclick="submitForm()">提交並開始推演</button>
+</div>
+
+<div id="loading" class="loading">
+<p>正在分析你的決策風險...</p>
+</div>
+
+<div id="result" class="result">
+👉 已接收，你的分析會在 24 小時內寄出
+</div>
+
+</div>
+
+<script>
+async function submitForm() {
+
+    let problem = document.getElementById("problem").value.trim();
+    let email = document.getElementById("email").value.trim();
+
+    if (!problem || !email) {
+        alert("請填完整");
+        return;
+    }
+
+    // 🔥 這裡已接 Google Sheet
+    await fetch("https://script.google.com/macros/s/AKfycbzfY_OcY4ve9BUruz8_S-oYlUX2WprHokDw37_wi4xw3SMYxkRp1_DTHEqOByAXZ0GEvA/exec", {
+        method: "POST",
+        body: JSON.stringify({
+            problem: problem,
+            email: email
+        })
+    });
+
+    document.getElementById("form").style.display = "none";
+    document.getElementById("loading").style.display = "block";
+
+    setTimeout(() => {
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("result").style.display = "block";
+    }, 2000);
+}
+</script>
+
+</body>
+</html>        }
 
         .status-badge {
             display: flex;
